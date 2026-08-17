@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donaciones Rolda - Presentación Ejecutiva</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .presentation {
+            width: 100%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            min-height: 600px;
+            padding: 60px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Slides Content */
+        .slide-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .slide-title h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .slide-title p {
+            font-size: 1.3em;
+            opacity: 0.95;
+            margin-bottom: 30px;
+        }
+
+        .slide-title .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin: 20px 0 15px 0;
+        }
+
+        p, li {
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        ul {
+            margin-left: 30px;
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        .problem-box {
+            background: #ffe5e5;
+            border-left: 5px solid #e74c3c;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .solution-box {
+            background: #e5ffe5;
+            border-left: 5px solid #27ae60;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .stat {
+            display: inline-block;
+            background: white;
+            padding: 20px 30px;
+            margin: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .comparison-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .comparison-table .bad {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .comparison-table .good {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            margin: 30px 0;
+            padding-left: 50px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            border: 4px solid white;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: 18px;
+            top: 25px;
+            width: 3px;
+            height: 80px;
+            background: #667eea;
+        }
+
+        .timeline-item:last-child::after {
+            display: none;
+        }
+
+        .timeline-date {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .timeline-content {
+            color: #333;
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .action-button {
+            background: #27ae60;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .action-button:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        .risk-item {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 4px solid #f39c12;
+        }
+
+        .risk-title {
+            font-weight: 600;
+            color: #f39c12;
+            margin-bottom: 8px;
+        }
+
+        .risk-mitigation {
+            color: #27ae60;
+            font-size: 0.95em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 60px;
+            background: #ecf0f1;
+            border-top: 1px solid #bdc3c7;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 60px;
+            text-align: center;
+        }
+
+        .section-header h2 {
+            color: white;
+            border-bottom-color: white;
+            font-size: 2.8em;
+        }
+
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .impact-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #667eea;
+        }
+
+        .impact-card .icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .impact-card h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #856404;
+            font-weight: 500;
+        }
+
+        .cost-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #667eea;
+        }
+
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #ecf0f1;
+            font-size: 1.05em;
+        }
+
+        .cost-item:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 1.2em;
+            color: #667eea;
+            padding-top: 15px;
+            border-top: 2px solid #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 30px 20px;
+                min-height: 400px;
+            }
+
+            .controls {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            h2 {
+                font-size: 1.8em;
+            }
+
+            .comparison-table {
+                font-size: 0.9em;
+            }
+
+            .comparison-table th, .comparison-table td {
+                padding: 10px;
+            }
+        }
+
+        .footer-text {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation">
+        <!-- Slide 1: Portada -->
+        <div class="slide active slide-title">
+            <div class="icon">🤝</div>
+            <h1>DONACIONES ROLDA</h1>
+            <p>Solución Inteligente para Emergencias Humanitarias</p>
+            <p style="font-size: 1em; margin-top: 40px; opacity: 0.8;">Roldanillo, Valle del Cauca</p>
+            <p style="font-size: 1em; opacity: 0.8;">Presentación para Autoridades y Líderes Locales</p>
+        </div>
+
+        <!-- Slide 2: El Problema -->
+        <div class="slide">
+            <section class="section-header">
+                <h2>🚨 EL PROBLEMA: ¿Por Qué Lo Necesitamos?</h2>
+            </section>
+            <div style="margin-top: 30px;">
+                <div class="problem-box">
+                    <strong>❌ Dispersión:</strong> No sabemos exactamente cuántas personas necesitan ayuda ni qué tipo
+                </div>
+                <div class="problem-box">
+                    <strong>❌ Duplicación:</strong> Unas familias reciben ayuda múltiples veces, otras ninguna
+                </div>
+                <div class="problem-box">
+                    <strong>❌ Ineficiencia:</strong> Las medicinas llegan tarde o no llegan a quien las necesita
+                </div>
+                <div class="problem-box">
+                    <strong>❌ Invisibilidad:</strong> Los más vulnerables (embarazadas, menores) pasan desapercibidos
+                </div>
+                <div class="problem-box">
+                    <strong>❌ Desconocimiento:</strong> Los donantes no saben si su aporte llegó realmente a alguien
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: La Solución -->
+        <div class="slide">
+            <section class="section-header">
+                <h2>✅ LA SOLUCIÓN: Donaciones Rolda</h2>
+            </section>
+            <div style="margin-top: 30px;">
+                <div class="solution-box">
+                    <strong>✓ IDENTIFICAR:</strong> Sistema automático detecta quién necesita ayuda (score 0-100)
+                </div>
+                <div class="solution-box">
+                    <strong>✓ RECOMENDAR:</strong> Protocolo médico sugiere medicinas específicas por caso
+                </div>
+                <div class="solution-box">
+                    <strong>✓ ENTREGAR:</strong> Operador recibe medicinas en campo, confirma con foto
+                </div>
+                <div class="solution-box">
+                    <strong>✓ MEDIR:</strong> Dashboard muestra impacto real: familias atendidas, medicinas entregadas
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.2em; color: #667eea; font-weight: 600;">
+                    Resultado: Máxima eficiencia, cero desperdicio, impacto medible
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 4: Comparación -->
+        <div class="slide">
+            <h2>🆚 Situación Actual vs. Con Donaciones Rolda</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Aspecto</th>
+                        <th>Situación Actual</th>
+                        <th>Con Donaciones Rolda</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Identificación</strong></td>
+                        <td class="bad">Manual, 3-5 días</td>
+                        <td class="good">Automática, &lt;24h</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Precisión de ayudas</strong></td>
+                        <td class="bad">60%</td>
+                        <td class="good">95%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Duplicación</strong></td>
+                        <td class="bad">30-40%</td>
+                        <td class="good">0%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Transparencia</strong></td>
+                        <td class="bad">Baja</td>
+                        <td class="good">100%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Escalabilidad</strong></td>
+                        <td class="bad">Limitada</td>
+                        <td class="good">Ilimitada</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Slide 5: Impacto Esperado -->
+        <div class="slide">
+            <section class="section-header">
+                <h2>📊 Impacto Esperado (Primeros 6 Meses)</h2>
+            </section>
+            <div style="margin: 20px; background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <p style="text-align: center; color: #667eea; font-size: 1.1em;"><strong>Total de familias afectadas: 5,000 | Total de personas: 20,000</strong></p>
+            </div>
+            <div class="impact-grid" style="margin-top: 20px;">
+                <div class="impact-card">
+                    <div class="icon">👨‍👩‍👧‍👦</div>
+                    <h4>Mes 1-3</h4>
+                    <div class="stat-number">500-1K</div>
+                    <div class="stat-label">familias</div>
+                </div>
+                <div class="impact-card">
+                    <div class="icon">👥</div>
+                    <h4>Mes 1-3</h4>
+                    <div class="stat-number">2K-4K</div>
+                    <div class="stat-label">personas</div>
+                </div>
+                <div class="impact-card">
+                    <div class="icon">👨‍👩‍👧‍👦</div>
+                    <h4>Mes 4-6</h4>
+                    <div class="stat-number">2K-3K</div>
+                    <div class="stat-label">familias</div>
+                </div>
+                <div class="impact-card">
+                    <div class="icon">👥</div>
+                    <h4>Mes 4-6</h4>
+                    <div class="stat-number">8K-12K</div>
+                    <div class="stat-label">personas</div>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 30px; font-size: 1.1em;">
+                <strong class="highlight">0% Duplicación</strong> • 
+                <strong class="highlight">95% Precisión</strong> • 
+                <strong class="highlight">$2.75-4.13 por familia</strong>
+            </p>
+        </div>
+
+        <!-- Slide 6: Cronograma -->
+        <div class="slide">
+            <h2>📅 Cronograma: ¿Cuándo Está Lista?</h2>
+            <div class="timeline" style="margin-top: 30px;">
+                <div class="timeline-item">
+                    <div class="timeline-date">17 Ago - HOY (Lunes)</div>
+                    <div class="timeline-content">Presentación • Confirmación compromisos • Recopilación datos</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">18-19 Ago (Mar-Mié)</div>
+                    <div class="timeline-content">Desarrollo intensivo • Capacitación operadores (8h)</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">20 Ago (Jueves)</div>
+                    <div class="timeline-content">Beta con 50-100 familias • Testing en terreno</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">21-22 Ago (Vie-Sab)</div>
+                    <div class="timeline-content">Ajustes finales • Load testing • Preparación go-live</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">23 Ago (Domingo)</div>
+                    <div class="timeline-content">🚀 LANZAMIENTO PRODUCCIÓN • Plataforma operativa</div>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 30px; font-size: 1.3em; color: #27ae60; font-weight: 700;">
+                ✅ Operativa en 7 días (23 de agosto)
+            </p>
+        </div>
+
+        <!-- Slide 7: Costo -->
+        <div class="slide">
+            <h2>💰 Inversión y Financiamiento</h2>
+            <div class="cost-box">
+                <div class="cost-item">
+                    <span>Infraestructura AWS (3 meses)</span>
+                    <span>$2,402 USD</span>
+                </div>
+                <div class="cost-item">
+                    <span>Servicios Externos (Twilio, etc)</span>
+                    <span>$24 USD</span>
+                </div>
+                <div class="cost-item">
+                    <span>Capacitación & Logística</span>
+                    <span>$350 USD</span>
+                </div>
+                <div class="cost-item">
+                    <span>Subtotal (sin margen)</span>
+                    <span style="font-size: 0.9em;">$2,752 USD</span>
+                </div>
+                <div class="cost-item" style="background: #fff3cd; border: 1px solid #ffc107;">
+                    <span><strong>Margen de Holgura 200%</strong></span>
+                    <span><strong>$5,504 USD</strong></span>
+                </div>
+                <div class="cost-item">
+                    <span>TOTAL PRESUPUESTADO</span>
+                    <span>$8,256 USD</span>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 20px; color: #667eea; font-size: 1.1em;">
+                📊 En COP (TRM 4,310): <strong>~$35,600,000</strong>
+            </p>
+            <p style="margin-top: 20px; color: #333;">
+                <strong>Nota:</strong> Ingeniero donado ($0) • Solo paga infraestructura • Retorno: $3-5 por cada $1 • 3,000-6,000 vidas impactadas
+            </p>
+        </div>
+
+        <!-- Slide 8: Riesgos y Mitigación -->
+        <div class="slide">
+            <h2>⚠️ Riesgos y Mitigación</h2>
+            <div style="margin-top: 20px;">
+                <div class="risk-item">
+                    <div class="risk-title">📱 Rechazo de operadores</div>
+                    <div class="risk-mitigation">✓ Capacitación robusta + Incentivos + App muy fácil de usar</div>
+                </div>
+                <div class="risk-item">
+                    <div class="risk-title">🔗 Falta de conexión en campo</div>
+                    <div class="risk-mitigation">✓ App funciona offline • Sincroniza cuando hay internet</div>
+                </div>
+                <div class="risk-item">
+                    <div class="risk-title">🔒 Seguridad de datos personales</div>
+                    <div class="risk-mitigation">✓ Encriptación nivel banco • Cumple ley LSPP colombiana</div>
+                </div>
+                <div class="risk-item">
+                    <div class="risk-title">💝 Bajo uso de plataforma</div>
+                    <div class="risk-mitigation">✓ Reportes de impacto + Notificaciones + Marketing local</div>
+                </div>
+                <div class="risk-item">
+                    <div class="risk-title">🏛️ Cambio de gobierno</div>
+                    <div class="risk-mitigation">✓ Documento de continuidad • Capacitación a nuevos equipos</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Casos de Uso -->
+        <div class="slide">
+            <h2>📋 Casos de Uso Locales</h2>
+            <h3>Caso 1: Emergencia Humanitaria (AHORA)</h3>
+            <p><strong>Sin plataforma:</strong> Toma 5 días identificar, medicinas llegan tarde</p>
+            <p><strong>Con Donaciones Rolda:</strong> En 24h se atiende a 150+ familias, 876 personas impactadas</p>
+            
+            <h3 style="margin-top: 25px;">Caso 2: Embarazadas en Riesgo (Permanente)</h3>
+            <p><strong>Sin plataforma:</strong> Caen entre grietas, no reciben seguimiento</p>
+            <p><strong>Con Donaciones Rolda:</strong> Sistema identifica "María, 7 meses, anemia" → Recibe vitaminas → Alerta si empeora</p>
+            
+            <h3 style="margin-top: 25px;">Caso 3: Donantes Motivados</h3>
+            <p><strong>Sin plataforma:</strong> No saben dónde fue su aporte</p>
+            <p><strong>Con Donaciones Rolda:</strong> "Tu donación llegó a 12 familias. Fotos: [link]. Impacto: [datos]"</p>
+        </div>
+
+        <!-- Slide 10: Lo que Necesitamos -->
+        <div class="slide">
+            <h2>🤲 Lo Que Necesitamos de Ustedes</h2>
+            <h3>🏛️ Alcaldía / Administración Local</h3>
+            <ul>
+                <li>✓ Respaldo oficial y autorización</li>
+                <li>✓ Acceso a operadores (personal Bienestar/Salud)</li>
+                <li>✓ Aporte financiero: $2,000-3,000 USD (30-50%)</li>
+                <li>✓ Comunicado municipal apoyando iniciativa</li>
+            </ul>
+
+            <h3>🏥 Puesto de Salud</h3>
+            <ul>
+                <li>✓ Personal dedicado: 1-2 horas/semana</li>
+                <li>✓ Protocolos locales (medicinas recomendadas)</li>
+                <li>✓ Acceso al sistema para alertas críticas</li>
+            </ul>
+
+            <h3>💝 ONG / Organizaciones</h3>
+            <ul>
+                <li>✓ Voluntarios operadores (3-5 personas)</li>
+                <li>✓ Donaciones base: medicinas/alimentos</li>
+                <li>✓ Aporte financiero: $1,000-2,000 USD</li>
+            </ul>
+
+            <h3>🏪 Centros de Acopio</h3>
+            <ul>
+                <li>✓ Inventario digital en sistema</li>
+                <li>✓ Coordinación de entregas</li>
+            </ul>
+        </div>
+
+        <!-- Slide 11: Llamado a la Acción -->
+        <div class="slide slide-title" style="background: linear-gradient(135deg, #27ae60 0%, #16a085 100%);">
+            <h2 style="color: white; border-bottom-color: white; font-size: 2.5em;">🚀 Llamado a la Acción</h2>
+            
+            <div style="background: rgba(255,255,255,0.1); padding: 30px; border-radius: 10px; margin: 20px 0;">
+                <h3 style="color: white; margin-bottom: 20px;">Cronograma de Compromisos:</h3>
+                <div style="text-align: left; color: white;">
+                    <p style="margin-bottom: 15px;"><strong>📍 Hoy:</strong> Presentamos proyecto, respondemos dudas</p>
+                    <p style="margin-bottom: 15px;"><strong>📍 Esta Semana:</strong> Visitamos bodegas, validamos compromisos</p>
+                    <p style="margin-bottom: 15px;"><strong>📍 Próximas 2 Semanas:</strong> Capacitación a operadores, setup técnico</p>
+                    <p style="margin-bottom: 15px;"><strong>📍 30 de Julio:</strong> 🎯 LANZAMIENTO OFICIAL</p>
+                </div>
+            </div>
+
+            <p style="font-size: 1.3em; margin-top: 30px;">
+                ¿Ustedes están con nosotros?
+            </p>
+        </div>
+
+        <!-- Slide 12: Preguntas -->
+        <div class="slide">
+            <h2>❓ Preguntas Frecuentes</h2>
+            <h3>P: ¿Cuánto tiempo tarda en ver resultados?</h3>
+            <p><strong>R:</strong> Resultados visibles en 2-3 semanas. Datos sólidos en 2 meses.</p>
+
+            <h3>P: ¿Funciona sin internet en campo?</h3>
+            <p><strong>R:</strong> SÍ. App funciona offline. Sincroniza cuando conecta.</p>
+
+            <h3>P: ¿Los datos de familias están realmente seguros?</h3>
+            <p><strong>R:</strong> SÍ. Encriptado como banco. Cumple ley LSPP de privacidad colombiana.</p>
+
+            <h3>P: ¿Qué pasa si el desarrollador desaparece?</h3>
+            <p><strong>R:</strong> Código documentado y guardado. Otro developer puede mantenerlo.</p>
+
+            <h3>P: ¿Cuánta capacitación necesitan operadores?</h3>
+            <p><strong>R:</strong> 2-3 horas iniciales. Es intuitiva (como WhatsApp).</p>
+        </div>
+
+        <!-- Slide 13: Resumen Ejecutivo -->
+        <div class="slide slide-title" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h1 style="font-size: 2.5em; margin-bottom: 30px;">📊 Resumen Ejecutivo</h1>
+            
+            <div style="background: rgba(255,255,255,0.15); padding: 25px; border-radius: 10px; color: white; margin: 20px 0;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; font-size: 1.05em; line-height: 2;">
+                    <div>
+                        <strong>Inversión:</strong> $8,256 USD (~$35.6M COP)
+                    </div>
+                    <div>
+                        <strong>Timeline:</strong> 7 días (23 agosto)
+                    </div>
+                    <div>
+                        <strong>Beneficiarios M1:</strong> 2,000-4,000 personas
+                    </div>
+                    <div>
+                        <strong>Beneficiarios M3-6:</strong> 8,000-12,000 personas
+                    </div>
+                    <div>
+                        <strong>Costo/Familia:</strong> $2.75-4.13 USD
+                    </div>
+                    <div>
+                        <strong>Ingeniero:</strong> Donado (0 costo)
+                    </div>
+                </div>
+            </div>
+
+            <p style="font-size: 1.3em; margin-top: 40px; font-weight: 700;">
+                ✅ Listo para comenzar. ¿Ustedes están con nosotros?
+            </p>
+        </div>
+
+        <!-- Slide 14: Contacto -->
+        <div class="slide">
+            <h2>📞 Contacto y Siguientes Pasos</h2>
+            
+            <div style="background: #f0f4ff; padding: 25px; border-radius: 10px; margin: 20px 0; border-left: 5px solid #667eea;">
+                <h3 style="color: #667eea;">Proyecto: Donaciones Rolda</h3>
+                <p><strong>Subtítulo:</strong> Plataforma Humanitaria Inteligente</p>
+                <p><strong>Líder del Proyecto:</strong> [Nombre PM]</p>
+                <p><strong>Correo:</strong> [email@donaciones-rolda.co]</p>
+                <p><strong>Teléfono:</strong> [+57 XXX XXX XXXX]</p>
+                <p><strong>WhatsApp:</strong> [Número]</p>
+            </div>
+
+            <h3>📅 Próxima Reunión de Compromiso:</h3>
+            <div style="background: #e5ffe5; padding: 20px; border-radius: 10px; border-left: 4px solid #27ae60;">
+                <p><strong>Fecha:</strong> [Próxima disponibilidad - a coordinar]</p>
+                <p><strong>Lugar:</strong> Alcaldía / Virtual</p>
+                <p><strong>Duración:</strong> 45 minutos</p>
+                <p><strong>Asistentes:</strong> Alcalde, Puesto Salud, ONG, Bodegas</p>
+            </div>
+
+            <p style="text-align: center; margin-top: 30px; font-size: 1.1em; color: #667eea; font-weight: 600;">
+                📚 Documentación completa disponible en: [link]
+            </p>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button onclick="previousSlide()" id="prevBtn">← Anterior</button>
+            <span class="slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">14</span></span>
+            <button onclick="nextSlide()" id="nextBtn">Siguiente →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = document.querySelectorAll('.slide').length;
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            
+            if (n > totalSlides) { currentSlide = totalSlides; }
+            if (n < 1) { currentSlide = 1; }
+            
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[currentSlide - 1].classList.add('active');
+            
+            document.getElementById('currentSlide').textContent = currentSlide;
+            document.getElementById('prevBtn').disabled = currentSlide === 1;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides;
+        }
+
+        function nextSlide() {
+            currentSlide++;
+            showSlide(currentSlide);
+        }
+
+        function previousSlide() {
+            currentSlide--;
+            showSlide(currentSlide);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight') nextSlide();
+            if (event.key === 'ArrowLeft') previousSlide();
+        });
+
+        // Initialize
+        showSlide(currentSlide);
+    </script>
+</body>
+</html>

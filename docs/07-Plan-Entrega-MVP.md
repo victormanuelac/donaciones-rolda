@@ -6,6 +6,8 @@
 **Go-Live Target:** Viernes, Agosto 30 (Fase 1) + Martes, Sept 2 (Estable)  
 **Audiencia:** Equipo de desarrollo, PM, stakeholders
 
+> ℹ️ **Nota de vigencia:** El compromiso público de lanzamiento es el **23 de agosto de 2026** (línea comercial, ver [`docs/00-INDICE.md`](00-INDICE.md)), más ajustado que las fechas día-a-día de este plan (que llegan hasta el 2 de septiembre). Este documento no incluye el Módulo 7 (ver [`11-Modulo-7-Beneficiarios-Estadisticas-Inteligentes.md`](11-Modulo-7-Beneficiarios-Estadisticas-Inteligentes.md) para su plan de implementación de 4 días). El desglose de esfuerzo por módulo y equipo sigue siendo la referencia más granular disponible y es la base del roadmap en Notion.
+
 ---
 
 ## 🎯 Objetivo del MVP

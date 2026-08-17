@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVADO:** Reemplazado por [`docs/00-INDICE.md`](../00-INDICE.md), el índice único vigente. Se conserva como referencia histórica (versión 1.0, previa a la integración del Módulo 7).
+
 # 📚 Índice Maestro — Documentación Donaciones Rolda
 
 **Versión:** 1.0  

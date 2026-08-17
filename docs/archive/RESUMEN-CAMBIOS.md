@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVADO:** Changelog histórico de la revisión de costos del 17-ago-2026. Su contenido ya está consolidado en [`docs/00-INDICE.md`](../00-INDICE.md). Se conserva como registro de auditoría.
+
 # ✅ RESUMEN DE CAMBIOS Y ACTUALIZACIONES
 ## Análisis de Costos - 17 Agosto 2026
 

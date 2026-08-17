@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVADO:** Changelog histórico de la incorporación del Módulo 7 a la documentación. Su contenido ya está consolidado en [`docs/00-INDICE.md`](../00-INDICE.md). Nota: pese a la fecha interna "28 de agosto", el historial de git confirma que este archivo se creó el 17-ago-2026 junto con el resto del corpus — la fecha es narrativa, no real. También reintroduce un costo de desarrollo pagado ($2,100-2,250 a $50/h) que contradice la premisa de "ingeniero donado" del resto de la documentación; tratar como dato no vigente. Se conserva como registro de auditoría.
+
 # ✅ RESUMEN DE ACTUALIZACIÓN: MÓDULO 7 INTEGRADO
 
 **Fecha:** Agosto 28, 2026  

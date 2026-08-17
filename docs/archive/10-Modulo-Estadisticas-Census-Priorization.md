@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVADO — DISEÑO DESCARTADO:** Esta propuesta de scoring/priorización de beneficiarios es incompatible con el diseño vigente en [`11-Modulo-7-Beneficiarios-Estadisticas-Inteligentes.md`](../11-Modulo-7-Beneficiarios-Estadisticas-Inteligentes.md) (algoritmo de scoring distinto, 4 niveles de riesgo vs. 3, esquema de tablas SQL mutuamente excluyente). Se conserva como referencia histórica de una alternativa de diseño descartada.
+
 # 📊 Módulo 10: Panel de Estadísticas y Análisis del Censo — Donaciones Rolda
 
 **Versión:** 1.0  

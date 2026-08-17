@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVADO:** Reemplazado por [`docs/00-INDICE.md`](../00-INDICE.md), el índice único vigente. Este índice v2.0 nunca llegó a cubrir todo el árbol de documentación (faltan diagramas 12/13, costos reales, financiamiento y Especificaciones v2), y sus cifras de costo/timeline ($1,748 / 11 días) quedaron superadas por la línea comercial vigente ($8,256 / 7 días). Se conserva como referencia histórica.
+
 # 📚 Índice Maestro — Documentación Donaciones Rolda (ACTUALIZADO)
 
 **Versión:** 2.0  

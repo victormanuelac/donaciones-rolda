@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVADO:** Reemplazado por [`Especificaciones_Técnicas_y_Arquitectura_-_Donaciones_Rolda_v2.md`](../Especificaciones_Técnicas_y_Arquitectura_-_Donaciones_Rolda_v2.md), que reescribe e integra este contenido (Módulos 1-6) sumando el Módulo 7. Se conserva como referencia histórica de la versión 1.0 (pre-Módulo 7).
+
 # 📋 Especificaciones Técnicas Expandidas — Donaciones Rolda
 
 **Versión:** 1.0  

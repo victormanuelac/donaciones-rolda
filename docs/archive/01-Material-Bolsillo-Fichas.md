@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVADO — CIFRAS OBSOLETAS:** Este material nunca se actualizó tras la revisión de costos del 17 de agosto de 2026 (ver histórico en este mismo directorio) y conserva cifras superadas ($6,050 USD, 150-200 familias, lanzamiento "30 de julio"). Antes de reutilizar este material de campo, actualízalo con las cifras vigentes en [`docs/00-INDICE.md`](../00-INDICE.md) ($8,256 USD, 5,000 familias afectadas, lanzamiento 23 de agosto).
+
 # 📄 MATERIAL DE BOLSILLO: FICHAS Y ELEVATOR PITCH
 ## Donaciones Rolda para Autoridades Locales
 

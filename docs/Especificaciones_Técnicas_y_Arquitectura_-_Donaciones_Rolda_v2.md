@@ -6,6 +6,8 @@
 **Última Actualización:** Agosto 2026  
 **Estado:** 🟢 Módulo 7 Integrado (Beneficiarios + Estadísticas Inteligentes)
 
+> ℹ️ **Nota de vigencia:** La sección "Métricas Clave" de este documento usa el timeline/costo de la línea técnica (11 días, go-live 2-sept, $1,748 USD). El presupuesto y timeline oficiales vigentes del proyecto son los de la línea comercial: **$8,256 USD, 7 días, lanzamiento 23 de agosto de 2026** — ver [`docs/00-INDICE.md`](00-INDICE.md). El desglose funcional por módulo y el modelo de datos de este documento siguen vigentes sin cambios.
+
 ---
 
 ## **📋 Índice**

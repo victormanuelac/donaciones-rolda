@@ -1,3 +1,5 @@
+> ℹ️ **Nota de vigencia:** Este documento estima solo infraestructura AWS ($1,748 USD) con un sizing más conservador que [`ANALISIS-COSTOS-REALES.md`](ANALISIS-COSTOS-REALES.md) (que usa RDS Multi-AZ, NAT Gateway y suma servicios externos + capacitación). El presupuesto oficial vigente del proyecto es **$8,256 USD** (con margen de contingencia 200%) — ver [`docs/00-INDICE.md`](00-INDICE.md). Se conserva por su metodología de cálculo detallada por servicio, útil como referencia técnica.
+
 # 💰 Estimación de Costos AWS (3 Meses) — Donaciones Rolda
 
 **Versión:** 1.0  

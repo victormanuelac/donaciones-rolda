@@ -1,3 +1,5 @@
+> ℹ️ **Nota de vigencia:** La cifra de costo mensual de este documento (~$419/mes, ~$1,548-$1,210 en 3 meses) no coincide con [`06-Estimacion-Costos-3Meses.md`](06-Estimacion-Costos-3Meses.md) ($1,748) ni con el presupuesto oficial vigente en [`ANALISIS-COSTOS-REALES.md`](ANALISIS-COSTOS-REALES.md) ($8,256 con margen 200%) — ver [`docs/00-INDICE.md`](00-INDICE.md). Se conserva por su análisis arquitectónico (comparación ECS/EC2/App Runner, Terraform), no por sus cifras.
+
 # 🏗️ Análisis de Infraestructura AWS — Donaciones Rolda
 
 **Versión:** 1.0  

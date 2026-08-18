@@ -76,13 +76,23 @@ sail mysql                 # abre un cliente mysql dentro del contenedor de base
 ## 4. Flujo de ramas y despliegue
 
 ```
-feature/xxx  →  PR + review  →  test  →  (CI/CD a EC2 de pruebas)  →  aprobado  →  main
+feature/xxx  →  PR (squash-merge, firmado)  →  test  →  (CI/CD a EC2 de pruebas)  →  PR aprobado  →  main
 ```
 
 - Todo cambio empieza en una rama nueva desde `main` (`feature/...`, `fix/...`, `docs/...`).
-- Se abre PR contra la rama **`test`**. Al mergear a `test`, ese push dispara el pipeline de CI/CD hacia el **ambiente de pruebas en EC2** (sección 5).
-- Una vez validado en el ambiente de pruebas y aprobado, `test` se mergea a **`main`** — esa es la única vía hacia producción.
-- No se pushea directo a `main` ni a `test`; siempre vía PR revisado.
+- Se abre PR contra la rama **`test`**, nunca push directo. Al mergear, ese push dispara el pipeline de CI/CD hacia el **ambiente de pruebas en EC2** (sección 5).
+- Una vez validado en el ambiente de pruebas y con el PR aprobado, se abre PR de `test` a **`main`** — esa es la única vía hacia producción.
+- **`main` y `test` están protegidas en GitHub** (branch protection rules) con tres reglas que aplican de verdad, no solo de palabra:
+  1. **Solo vía Pull Request** — push directo rechazado (salvo el owner del repo, que tiene bypass; no lo uses para saltarte el flujo).
+  2. **Sin commits de merge** — el merge del PR debe ser **squash** (o rebase), no "merge commit". Configúralo así al mergear en GitHub, o con `gh pr merge --squash`.
+  3. **Commits firmados** — cada commit necesita firma verificada (GPG o SSH signing). Configúralo una vez por máquina:
+     ```bash
+     # opción SSH (más simple si ya usas una key SSH para GitHub)
+     git config --global gpg.format ssh
+     git config --global user.signingkey ~/.ssh/id_ed25519.pub
+     git config --global commit.gpgsign true
+     ```
+     o sigue la [guía de GitHub para firma GPG](https://docs.github.com/en/authentication/managing-commit-signature-verification) si prefieres esa vía. Sin esto, GitHub rechaza el push a `test`/`main` si no eres el owner con bypass.
 
 ## 5. Ambiente de pruebas en la instancia EC2
 

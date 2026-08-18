@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "wsl.exe",
+            "args": [
+                "/home/vmac/.config/herd-lite/bin/php",
+                "/home/vmac/projects/donaciones-rolda/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}

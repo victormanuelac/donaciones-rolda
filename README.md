@@ -49,6 +49,23 @@ Abre **http://localhost**.
 
 Las credenciales de base de datos ya vienen configuradas en `.env.example` para apuntar a los contenedores de Sail (`DB_HOST=mysql`, `DB_DATABASE=laravel`, `DB_USERNAME=sail`, `DB_PASSWORD=password`) — no hace falta tocarlas para desarrollo local.
 
+### Usuario de prueba (super admin)
+
+El seeder (`database/seeders/DatabaseSeeder.php`, se ejecuta con `sail artisan migrate` si agregas `--seed`, o `sail artisan db:seed`) crea un usuario con rol `admin` y acceso total, para probar el sistema localmente sin pasar por el flujo de aprobación de usuarios del Módulo 2:
+
+| Campo | Valor |
+|---|---|
+| Email | `admin@donaciones-rolda.test` |
+| Password | `AdminRolda#2026` |
+| Rol | `admin` (`App\Enums\UserRole::Admin`) |
+| Estado | `active` |
+
+```bash
+./vendor/bin/sail artisan migrate:fresh --seed   # recrea la BD e incluye este usuario
+```
+
+> ⚠️ **Solo para local/pruebas.** Estas credenciales están en texto plano en este README a propósito — nunca corras este seeder contra el ambiente de producción, y cámbialas si el ambiente de pruebas en EC2 queda expuesto más allá de tu equipo.
+
 ### Alias `sail` (opcional, pero recomendado)
 
 Para no escribir `./vendor/bin/sail` cada vez:

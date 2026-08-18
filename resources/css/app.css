@@ -8,8 +8,27 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/**
+ * Sistema de diseño "Stark Dim" — ver docs/15-Sistema-de-Diseno-Visual.md
+ * Adaptado de docs/fixflow-stark-dim.html. Solo modo oscuro: la app fuerza
+ * class="dark" en <html>, no existe variante clara todavía.
+ */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+
+    --color-canvas:      #18181A; /* Zinc 900 cálido */
+    --color-surface:     #27272A; /* Zinc 800 */
+    --color-surface-2:   #3F3F46; /* Zinc 700 */
+    --color-line:        #52525B; /* Zinc 600 */
+    --color-ink:         #E4E4E7; /* Zinc 200 */
+    --color-muted:       #A1A1AA; /* Zinc 400 */
+    --color-primary:     #EA580C; /* Orange 600 */
+    --color-primary-dim: #C2410C; /* Orange 700 */
+    --color-secondary:   #65A30D; /* Lime 600 */
+    --color-warn:        #F59E0B; /* Amber 500 */
+    --color-danger:      #E11D48; /* Rose 600 */
+    --color-info:        #3B82F6; /* Blue 500 */
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -23,27 +42,47 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
-    --color-accent-foreground: var(--color-white);
+    /* Flux UI internamente usa estas tres variables para sus estados
+       "accent" (botón primario, foco, logo de marca) — se re-apuntan al
+       naranja de marca para que los componentes flux:* hereden el tema
+       sin sobreescribir cada uno individualmente. */
+    --color-accent:            var(--color-primary);
+    --color-accent-content:    var(--color-primary);
+    --color-accent-foreground: #ffffff;
+
+    --radius-brutal: 6px;
+
+    --shadow-brutal:     3px 3px 0 0 #000000;
+    --shadow-brutal-lg:  5px 5px 0 0 #000000;
+    --shadow-brutal-btn: 4px 4px 0 0 #000000;
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent:            var(--color-primary);
+        --color-accent-content:    var(--color-primary);
+        --color-accent-foreground: #ffffff;
     }
 }
 
 @layer base {
-
     *,
     ::after,
     ::before,
     ::backdrop,
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
+    }
+
+    body {
+        background-color: var(--color-canvas);
+        color: var(--color-ink);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: -0.02em;
     }
 }
 
@@ -61,6 +100,38 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
+/* ── Utilidades "Stark Dim" — botones/tarjetas con sombra dura ──
+   Se aplican vía class="" directo en las vistas (welcome, layouts,
+   auth), nunca sobreescribiendo los stubs internos de Flux. */
+.btn-brutal {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-width: 2px;
+    border-radius: var(--radius-brutal);
+    box-shadow: var(--shadow-brutal-btn);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+.btn-brutal:hover  { transform: translateY(-2px); box-shadow: 6px 6px 0 0 #000; }
+.btn-brutal:active { transform: translateY(1px);  box-shadow: 1px 1px 0 0 #000; }
+
+.card-brutal {
+    background: var(--color-surface);
+    border: 2px solid var(--color-line);
+    border-radius: var(--radius-brutal);
+    box-shadow: var(--shadow-brutal);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.card-brutal.is-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-brutal-lg);
+}
+
+.grid-decoration {
+    background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(82,82,91,0.15) 39px, rgba(82,82,91,0.15) 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(82,82,91,0.15) 39px, rgba(82,82,91,0.15) 40px);
+    pointer-events: none;
+}

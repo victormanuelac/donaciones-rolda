@@ -813,9 +813,11 @@ Notifications continue in background...
 
 ## 6. PIPELINE CI/CD
 
+> ⚠️ **Nota de vigencia (18-ago-2026):** el diagrama de Git Flow de abajo (`develop` → `staging` → `release/vX.Y.Z` → `main`) quedó **superado**. El flujo vigente es más simple: `feature/xxx` → PR contra `test` → CI/CD al ambiente de pruebas en EC2 → aprobado → merge a `main`. Sin rama `develop` ni tags `release/*`. Ver "Flujo de ramas y despliegue" en `CLAUDE.md` y la sección "Ambiente de pruebas en la instancia EC2" en `README.md` para el detalle vigente. El resto de este diagrama (tests automatizados, GitHub Actions) sigue siendo la referencia de diseño, salvo que `.github/workflows/deploy.yml` todavía no existe — solo `tests.yml`.
+
 ```
 ┌───────────────────────────────────────────────────────────────┐
-│                   GIT FLOW & VERSIONING                       │
+│                   GIT FLOW & VERSIONING (superado, ver nota arriba) │
 ├───────────────────────────────────────────────────────────────┤
 │                                                               │
 │ Feature Branch                                                │

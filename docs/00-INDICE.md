@@ -40,6 +40,7 @@ El desglose de esfuerzo por módulo y equipo más granular sigue siendo el de `0
 - [`03-Funciones-Adicionales-Propuestas.md`](03-Funciones-Adicionales-Propuestas.md) — 5 funciones Fase II (geolocalización, reportes, QR, etc.)
 - [`11-Modulo-7-Beneficiarios-Estadisticas-Inteligentes.md`](11-Modulo-7-Beneficiarios-Estadisticas-Inteligentes.md) — diseño vigente del módulo de beneficiarios/scoring/recomendaciones
 - [`09-Analisis-Integracion-Apps-Existentes.md`](09-Analisis-Integracion-Apps-Existentes.md) / [`09B-Resumen-Integracion-RAPIDO.md`](09B-Resumen-Integracion-RAPIDO.md) — evaluación de reutilizar código de apps voluntarias existentes (ahorro 27-34h)
+- [`15-Sistema-de-Diseno-Visual.md`](15-Sistema-de-Diseno-Visual.md) — estándar de diseño visual normativo ("Stark Dim"): tokens, tipografía, componentes, reglas de rendimiento (censo offline-first)
 
 ## 3. Diagramas
 

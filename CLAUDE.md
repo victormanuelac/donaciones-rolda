@@ -10,9 +10,7 @@ Responde siempre en español: explicaciones, mensajes de commit y de PR, y cualq
 
 **Donaciones Rolda** es una plataforma para rastrear y gestionar la disponibilidad de medicamentos, insumos médicos, alimentos y herramientas durante emergencias locales o catástrofes, pensada inicialmente para el municipio de Roldanillo (Colombia).
 
-**Estado actual: además de la documentación de diseño/negocio (`docs/*.md`), ya existe el proyecto Laravel de la aplicación, en la raíz de este mismo repositorio** (`app/`, `composer.json`, `routes/`, etc. — no en una subcarpeta). Se generó con `laravel new` el 18-ago-2026 usando el starter kit de Livewire; ver "Arquitectura técnica planeada" abajo para el detalle de stack y las diferencias con la spec original que ya se resolvieron. Laravel Boost está instalado (`boost.json`, `.mcp.json`, skills en `.claude/skills/`) para asistencia de IA — sus reglas específicas de Laravel están al final de este archivo, en la sección `<laravel-boost-guidelines>` (esa sección se regenera automáticamente con `composer run post-update-cmd` / `artisan boost:update`; no la edites a mano, edita todo lo demás en este archivo libremente).
-
-El roadmap operativo día a día (módulos, funciones, checklists por equipo) se gestiona en **Notion** ("Kit de desarrollo de productos de software" — Product Roadmap + Engineering Tasks). Este repo es la fuente de las decisiones de diseño/negocio; Notion es la fuente de verdad operativa. Hay herramientas MCP de Notion habilitadas en `.claude/settings.local.json` para leer/escribir ahí.
+**Estado actual: además de la documentación de diseño/negocio (`docs/*.md`), ya existe el proyecto Laravel de la aplicación, en la raíz de este mismo repositorio** (`app/`, `composer.json`, `routes/`, etc. — no en una subcarpeta). Se generó con `laravel new` el 18-ago-2026 usando el starter kit de Livewire; ver "Arquitectura técnica" abajo para el detalle de stack y las diferencias con la spec original que ya se resolvieron. Laravel Boost está instalado (`boost.json`, `.mcp.json`, skills en `.claude/skills/`) para asistencia de IA — sus reglas específicas de Laravel están en el bloque de guías de Boost al final de este archivo (se regenera automáticamente con `composer run post-update-cmd` / `php artisan boost:update`; no lo edites a mano). **Cuidado:** ese comando corre en cada `composer install`/`composer update` y busca el marcador de apertura de ese bloque en todo el archivo — si necesitas referirte a él en prosa, no escribas el tag literal, descríbelo con palabras (ya pasó una vez: una mención inline del tag truncó y borró el resto de este documento).
 
 ## ⚠️ Cifras y decisiones vigentes — lee esto antes que cualquier documento de `docs/`
 
@@ -22,10 +20,11 @@ La documentación se escribió en varias pasadas el mismo día (17-ago-2026) y l
 |---|---|---|
 | Presupuesto (3 meses) | **$8,256 USD** (incl. margen de contingencia 200%) — `ANALISIS-COSTOS-REALES.md` + `OPCIONES-DE-FINANCIAMIENTO.md` | $1,748 (`06-Estimacion-Costos-3Meses.md`), $1,548/$1,210 (`05-Analisis-Infraestructura-AWS.md`), $6,050 (`archive/`, obsoleto) |
 | Timeline / lanzamiento | **7 días, lanzamiento 23 de agosto de 2026** — `00-Presentacion-Ejecutiva-Donaciones-Rolda.md` | 11 días / 2 de septiembre (`07-Plan-Entrega-MVP.md`, spec técnica v2); 30 de julio (obsoleto) |
-| Diseño del módulo de Beneficiarios | **`11-Modulo-7-Beneficiarios-Estadisticas-Inteligentes.md`** — scoring 0-100 en 3 niveles, 8 tablas | `archive/10-Modulo-Estadisticas-Census-Priorization.md` (esquema incompatible, descartado) |
+| Diseño del módulo de Beneficiarios | **`11-Modulo-7-Beneficiarios-Estadisticas-Inteligentes.md`** — scoring 0-100 en 3 niveles, 8 tablas + censo georreferenciado (ver más abajo) | `archive/10-Modulo-Estadisticas-Census-Priorization.md` (esquema incompatible, descartado) |
 | Especificación técnica base | **`Especificaciones_Técnicas_y_Arquitectura_-_Donaciones_Rolda_v2.md`** (integra Módulo 7) | `archive/01-Especificaciones-Tecnicas-Expandidas.md` (v1, pre-Módulo 7) |
+| Diseño visual | **`docs/15-Sistema-de-Diseno-Visual.md`** ("Stark Dim", solo modo oscuro) — normativo para toda pantalla nueva | N/A, es la primera versión |
 
-El desglose de esfuerzo por módulo/equipo más granular sigue siendo el de `07-Plan-Entrega-MVP.md` + `11-Modulo-7-...md` (base numérica del roadmap en Notion), aunque su calendario de 11 días no es el compromiso público vigente (7 días). Ver el índice completo en `docs/00-INDICE.md`, que es la puerta de entrada oficial a toda la documentación.
+El desglose de esfuerzo por módulo/equipo más granular sigue siendo el de `07-Plan-Entrega-MVP.md` + `11-Modulo-7-...md` (base numérica del roadmap en Notion), aunque su calendario de 11 días no es el compromiso público vigente (7 días). Ver el índice completo en `docs/00-INDICE.md`, que es la puerta de entrada oficial a toda la documentación. El roadmap operativo día a día (hitos por módulo, prioridades, tareas de ingeniería) vive en Notion — bases de datos "Product Roadmap" y "Engineering Tasks" — no en este repo.
 
 ## Cómo moverte en la documentación
 
@@ -34,11 +33,23 @@ El desglose de esfuerzo por módulo/equipo más granular sigue siendo el de `07-
 - `docs/14-Modulos-y-Funcionalidades.md` — catálogo funcional de referencia: objetivo, endpoints y pantallas de cada módulo.
 - `docs/Especificaciones_Técnicas_y_Arquitectura_-_Donaciones_Rolda_v2.md` — spec técnica vigente (stack, arquitectura, 7 módulos núcleo).
 - `docs/02-Modelo-Datos-MER-DDL.md` + `docs/11-Modulo-7-...md` — modelo de datos (ver nota de inconsistencia abajo, están sin fusionar).
+- `docs/15-Sistema-de-Diseno-Visual.md` — estándar de diseño visual normativo (tokens, tipografía, componentes, reglas de rendimiento).
 - `docs/08-Matriz-Compliance-Privacy-LSPP.md` — cumplimiento Ley 1581/2012 (Colombia): PII, retención, derechos del titular, brechas.
-- `docs/12-Diagramas-Flujo-Detallados.md`, `docs/13-Diagramas-Arquitectura.md`, `docs/04-Diagramas-Flujos-Modulos.md` — diagramas (ver mapa en `docs/INDICE-DIAGRAMAS.md`).
+- `docs/12-Diagramas-Flujo-Detallados.md`, `docs/13-Diagramas-Arquitectura.md`, `docs/04-Diagramas-Flujos-Modulos.md` — diagramas (ver mapa en `docs/INDICE-DIAGRAMAS.md`). El flujo de Git documentado en `docs/13` (`develop` → `release/vX.Y.Z` → `main`) está superado — ver "Flujo de ramas y despliegue" más abajo.
 - `docs/archive/` — documentos superados, conservados por trazabilidad; cada uno indica en su encabezado qué lo reemplaza. No los uses como fuente de cifras o diseño vigente.
 
 Al editar o crear documentos en `docs/`, sigue el patrón ya establecido: encabezado con nota de vigencia si el documento fue superado parcialmente, y actualiza `docs/00-INDICE.md` si agregas o reemplazas un documento.
+
+## Flujo de ramas y despliegue
+
+```
+feature/xxx  →  PR + review  →  test  →  (CI/CD al ambiente de pruebas en EC2)  →  aprobado  →  main
+```
+
+- Toda rama nueva sale de `main` (`feature/...`, `fix/...`, `docs/...`).
+- El PR se abre contra `test`, no contra `main`. Mergear a `test` dispara el pipeline hacia el ambiente de pruebas en EC2 (ver `README.md`, sección "Ambiente de pruebas").
+- Solo después de validar en ese ambiente y con aprobación, `test` se mergea a `main` (producción).
+- Nunca push directo a `test` ni a `main` — siempre vía PR revisado. No confundir con el flujo `develop`/`release/vX.Y.Z` que describe `docs/13-Diagramas-Arquitectura.md`: ese diagrama quedó superado por este esquema más simple (18-ago-2026), no se ha vuelto a dibujar el diagrama pero la regla vigente es la de este archivo y `README.md`.
 
 ## Arquitectura técnica
 
@@ -49,19 +60,19 @@ La spec original (`Especificaciones_Técnicas_y_Arquitectura_v2.md`) fue escrita
 | Componente | Tecnología |
 |---|---|
 | Backend | Laravel 13 (PHP 8.3+, entorno local en 8.5) |
-| Relacional | MySQL 8.0 / MariaDB 10.11 |
+| Relacional | MySQL 8.4 (contenedor de Sail) / MariaDB 10.11 |
 | Cache / Queue | Redis 7.0 |
 | Frontend | Blade + **Livewire 4.x** + Alpine.js (sin SPA pesado) |
-| Componentes UI | **Flux UI 2.x** (`livewire/flux`) — no estaba en la spec original; se adoptó porque viene con el starter kit y acelera tablas/forms/modales del MVP. Su capa gratuita cubre lo necesario; si algún componente Pro se vuelve indispensable, es una decisión de costo a validar antes de usarlo. |
-| Estilos | **Tailwind CSS 4.x** |
+| Componentes UI | **Flux UI 2.x** (`livewire/flux`, edición gratuita) — no estaba en la spec original; se adoptó porque viene con el starter kit y acelera tablas/forms/modales del MVP. |
+| Estilos | **Tailwind CSS 4.x** — tokens del sistema de diseño en `resources/css/app.css`, ver `docs/15-Sistema-de-Diseno-Visual.md` |
+| Tipografía | Space Grotesk (títulos/labels/botones) + Figtree (cuerpo), autoalojadas vía `laravel-vite-plugin/fonts` (`bunny()`) — sin Google Fonts CDN, crítico para el censo offline |
 | Offline (PWA) | IndexedDB vía Dexie.js + Service Worker |
 | Antibot | Cloudflare Turnstile |
 | Mapas | Leaflet.js + OpenStreetMap |
 | Tiempo real | Laravel Reverb / Redis (o Pusher) |
+| Entorno local/pruebas | Laravel Sail (`compose.yaml`) — MySQL + Redis en Docker, ver `README.md` |
 | Testing | Pest 5 (corre sobre PHPUnit; la spec menciona "phpunit" genéricamente, se interpreta como cumplido por Pest) |
 | Análisis estático | Larastan/PHPStan + Pint (`composer run types:check`, `composer run lint`) |
-
-Filosofía "Clean Laravel": controladores delgados + Action classes de responsabilidad única para la lógica de negocio, FormRequests dedicados para validación, Enums tipados en PHP (`StockStatus`, `TrafficLightSeverity`, `UserRole`, `PriorityLevel`, `AlertType`), DTOs entre API y capa de sincronización offline.
 
 ### Arquitectura general
 
@@ -77,7 +88,7 @@ Monolito Laravel (no microservicios) con frontend server-rendered (Blade + Livew
 | 4 | Control Maestro de Ítems | Admin aprueba ítems nuevos y consolida duplicados |
 | 5 | Alertas y Auditoría | Notificaciones, trazabilidad, reportes |
 | 6 | Entregas y Seguimiento | Entrega física a beneficiarios; cierra el ciclo con M7 |
-| 7 | Beneficiarios + Estadísticas Inteligentes | Prioriza por vulnerabilidad y recomienda entregas |
+| 7 | Beneficiarios + Estadísticas Inteligentes | Prioriza por vulnerabilidad, censo georreferenciado y recomienda entregas |
 | 8-13 | Mapa Colaborativo, Búsqueda Geolocalizada, Sugerencias Inteligentes, Reportes Exportables, Dashboard Tiempo Real, Trazabilidad QR/Barcode | Funciones adicionales de `03-Funciones-Adicionales-Propuestas.md` |
 
 M1-M6 son la base operativa (inventario → entrega). M7 se integra transversalmente: enriquece M1 (búsqueda con demanda agregada anónima, sin nombres, por LSPP), reacciona a M3 (Model Observer sobre `StockEntry` detecta brecha stock vs demanda) y se dispara al confirmarse una entrega en M6 (marca recomendaciones `FULFILLED`, actualiza `care_history`, notifica al donante).
@@ -88,7 +99,9 @@ M1-M6 son la base operativa (inventario → entrega). M7 se integra transversalm
 
 `docs/02-Modelo-Datos-MER-DDL.md` (12 tablas de M1-6: `geographic_zones`, `organizations`, `users`, `warehouses`, `categories`, `master_items`, `stock_entries`, `stock_exits`, `audit_logs`, `internal_notifications`, `warehouse_assignments`, `expiry_alerts`) y `docs/11-Modulo-7-...md` (8 tablas de M7: `beneficiaries`, `vulnerability_scores`, `protocol_recommendations`, `beneficiary_recommendations`, `care_history`, `health_referrals`, `alerts`, `statistics_cache`) **no están fusionados en un único DDL**. Si implementas migraciones, tenlo en cuenta y no asumas que uno de los dos documentos por sí solo describe el esquema completo.
 
-**Inconsistencia conocida y sin resolver:** el DDL de `02-Modelo-Datos-MER-DDL.md` define `users.role ENUM('admin', 'acopio_operator', 'field_leader')` (3 roles) mientras que la spec vigente y el Módulo 7 ya operan con 6 roles (`operator/coordinator/admin/doctor/donor/municipal`). Actualizar ese enum es una tarea pendiente dentro del Módulo 2, no algo ya resuelto.
+**Inconsistencia conocida y sin resolver:** el DDL de `02-Modelo-Datos-MER-DDL.md` define `users.role ENUM('admin', 'acopio_operator', 'field_leader')` (3 roles) mientras que la spec vigente y el Módulo 7 ya operan con 6 roles (`operator/coordinator/admin/doctor/donor/municipal`). Actualizar ese enum es una tarea pendiente dentro del Módulo 2 (ya registrada como Engineering Task en Notion).
+
+**Gap conocido en el Módulo 7 (censo):** el DDL de `beneficiaries` referencia `family_id → families(id)` y `census_entry_id → census_entries(id)`, pero ninguna de las dos tablas está definida en ningún documento — falta el modelo de censo por hogar (con GPS y condiciones de vivienda). Diseño de esas dos tablas nuevas documentado directamente en la página del Módulo 7 en Notion y en las Engineering Tasks correspondientes.
 
 **Campos PII a encriptar a nivel de aplicación (AES-256, cast `Encrypted::class`):** `users.document_id`, `users.phone`, `users.email`, `warehouses.contact_phone`, `stock_exits.received_by_name`. Trátalo como requisito desde el primer commit que toque estas tablas, no como mejora futura.
 
@@ -108,9 +121,9 @@ No implementes manejo de datos de beneficiarios/usuarios sin considerar estas re
 
 ### Despliegue e infraestructura
 
-AWS: Cloudflare (CDN/WAF/DDoS) → ALB → ECS Fargate (API + queue workers, autoscaling 2-4 tasks) → RDS Aurora MySQL Multi-AZ + ElastiCache Redis, en VPC con subnets públicas/privadas por capa. Detalle completo (security groups, alarms, DR) en `docs/13-Diagramas-Arquitectura.md` y `docs/05-Analisis-Infraestructura-AWS.md` (cifra de costo de este último desactualizada, ver tabla de vigencia).
-
-CI/CD planeado: GitHub Actions — `tests.yml` (Pint, PHPUnit/Pest, PHPStan, cobertura a Codecov) y `deploy.yml` (build Docker → ECR → ECS → smoke test → rollback automático si falla el health check). Git flow: feature branch → PR con review → `develop` → staging → `release/vX.Y.Z` → `main`.
+- **Ambiente de pruebas (actual):** instancia EC2 corriendo Docker/Sail directo — ver `README.md`, sección "Ambiente de pruebas en la instancia EC2". Es deliberadamente simple porque el pipeline ECS/Terraform todavía no existe.
+- **Producción (objetivo, no implementado aún):** AWS: Cloudflare (CDN/WAF/DDoS) → ALB → ECS Fargate (API + queue workers, autoscaling 2-4 tasks) → RDS Aurora MySQL Multi-AZ + ElastiCache Redis, en VPC con subnets públicas/privadas por capa. Detalle completo (security groups, alarms, DR) en `docs/13-Diagramas-Arquitectura.md` y `docs/05-Analisis-Infraestructura-AWS.md` (cifra de costo de este último desactualizada, ver tabla de vigencia).
+- **CI/CD:** GitHub Actions — `.github/workflows/tests.yml` corre en PRs y push a `main`/`test` (Pint, Pest, PHPStan). No existe todavía `deploy.yml`; el despliegue al ambiente de pruebas EC2 es manual (`git pull` + rebuild, ver README) hasta que se automatice.
 
 ## Contradicciones conocidas sin resolver (transparencia)
 
@@ -121,7 +134,7 @@ No asumas que estas contradicciones ya fueron resueltas al usar los documentos; 
 
 ---
 
-*La sección siguiente la genera y mantiene Laravel Boost (`composer run post-update-cmd` / `php artisan boost:update`). No la edites a mano: cualquier cambio manual se pierde en la próxima regeneración. Es un complemento a las reglas de arriba, no un reemplazo — las reglas de idioma, dominio y arquitectura de este documento siguen aplicando.*
+*La sección siguiente la genera y mantiene Laravel Boost (`composer run post-update-cmd` / `php artisan boost:update`). No la edites a mano: cualquier cambio manual se pierde en la próxima regeneración. Es un complemento a las reglas de arriba, no un reemplazo — las reglas de idioma, dominio, flujo de ramas y arquitectura de este documento siguen aplicando.*
 
 <laravel-boost-guidelines>
 === foundation rules ===

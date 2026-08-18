@@ -82,9 +82,9 @@ feature/xxx  →  PR (squash-merge, firmado)  →  test  →  (CI/CD a EC2 de pr
 - Todo cambio empieza en una rama nueva desde `main` (`feature/...`, `fix/...`, `docs/...`).
 - Se abre PR contra la rama **`test`**, nunca push directo. Al mergear, ese push dispara el pipeline de CI/CD hacia el **ambiente de pruebas en EC2** (sección 5).
 - Una vez validado en el ambiente de pruebas y con el PR aprobado, se abre PR de `test` a **`main`** — esa es la única vía hacia producción.
-- **`main` y `test` están protegidas en GitHub** (branch protection rules) con tres reglas que aplican de verdad, no solo de palabra:
-  1. **Solo vía Pull Request** — push directo rechazado (salvo el owner del repo, que tiene bypass; no lo uses para saltarte el flujo).
-  2. **Sin commits de merge** — el merge del PR debe ser **squash** (o rebase), no "merge commit". Configúralo así al mergear en GitHub, o con `gh pr merge --squash`.
+- **`main` y `test` están protegidas en GitHub** (ruleset, Settings → Rules) — acotado a esas dos ramas específicamente, no a todo el repositorio (las ramas `feature/*`/`fix/*`/`docs/*` quedan libres para hacer `amend`/rebase/force-push mientras trabajas, sin perder protección donde importa). Reglas activas en `main`/`test`:
+  1. **Solo vía Pull Request**, con **al menos 1 aprobación requerida** — push directo rechazado salvo el owner del repo (que tiene bypass; no lo uses para saltarte el flujo, es solo para emergencias).
+  2. **Historia lineal (sin commits de merge)** — el merge del PR debe ser **squash** (repo configurado para solo permitir "Allow squash merging"). En GitHub, usa el botón "Squash and merge"; por CLI, `gh pr merge --squash`.
   3. **Commits firmados** — cada commit necesita firma verificada (GPG o SSH signing). Configúralo una vez por máquina:
      ```bash
      # opción SSH (más simple si ya usas una key SSH para GitHub)
@@ -92,7 +92,8 @@ feature/xxx  →  PR (squash-merge, firmado)  →  test  →  (CI/CD a EC2 de pr
      git config --global user.signingkey ~/.ssh/id_ed25519.pub
      git config --global commit.gpgsign true
      ```
-     o sigue la [guía de GitHub para firma GPG](https://docs.github.com/en/authentication/managing-commit-signature-verification) si prefieres esa vía. Sin esto, GitHub rechaza el push a `test`/`main` si no eres el owner con bypass.
+     Además de firmar localmente, **la clave pública debe estar agregada en GitHub como "Signing Key"** (Settings → SSH and GPG keys → New SSH key → Key type: *Signing Key* — es una entrada separada de la "Authentication Key" que ya usas para el `git push`, aunque sea la misma clave física). Sin ese registro, GitHub no puede verificar la firma aunque el commit sí esté firmado. O sigue la [guía de GitHub para firma GPG](https://docs.github.com/en/authentication/managing-commit-signature-verification) si prefieres esa vía.
+- **Quién puede pushear de verdad** lo define el rol de colaborador en Settings → Collaborators and teams (`Write`, no `Admin` salvo que lo necesite) — el ruleset controla *cómo* entra un cambio, no *quién* está autorizado a proponerlo.
 
 ## 5. Ambiente de pruebas en la instancia EC2
 

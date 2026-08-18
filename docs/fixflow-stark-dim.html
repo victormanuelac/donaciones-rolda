@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FixFlow — Stark Dim</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ── TOKENS ─────────────────────────────────────── */
+  :root {
+    --bg:        #18181A;   /* Zinc 900 cálido */
+    --surface:   #27272A;   /* Zinc 800 */
+    --surface2:  #3F3F46;   /* Zinc 700 */
+    --border:    #52525B;   /* Zinc 600 */
+    --text:      #E4E4E7;   /* Zinc 200 */
+    --muted:     #A1A1AA;   /* Zinc 400 */
+    --primary:   #EA580C;   /* Orange 600 */
+    --primary-d: #C2410C;   /* Orange 700 */
+    --secondary: #65A30D;   /* Lime 600 */
+    --accent:    #F59E0B;   /* Amber 500 — en lugar del amarillo cegador */
+    --dark:      #18181A;
+    --shadow:    3px 3px 0px 0px #000000;
+    --shadow-lg: 5px 5px 0px 0px #000000;
+    --shadow-btn:4px 4px 0px 0px #000000;
+    --radius:    6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Figtree', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  h1,h2,h3,h4,h5,h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── NAVBAR ─────────────────────────────────────── */
+  .navbar {
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 0 0 rgba(0,0,0,0.5);
+  }
+
+  .logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transform: rotate(-1deg);
+  }
+
+  .logo-badge {
+    background: var(--primary);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+    transform: rotate(1deg);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .nav-link {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .nav-link:hover { color: var(--text); background: var(--surface2); }
+  .nav-link.active { color: var(--primary); background: rgba(234,88,12,0.12); }
+
+  .nav-avatar {
+    width: 34px; height: 34px;
+    background: var(--primary);
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: #fff;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .nav-avatar:hover { transform: translateY(-2px); box-shadow: var(--shadow-btn); }
+
+  /* ── LAYOUT ─────────────────────────────────────── */
+  .layout { display: flex; min-height: calc(100vh - 60px); }
+
+  .sidebar {
+    width: 220px;
+    background: var(--surface);
+    border-right: 2px solid var(--border);
+    padding: 16px 12px;
+    flex-shrink: 0;
+  }
+
+  .sidebar-section {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    padding: 0 8px;
+    margin: 16px 0 6px;
+  }
+  .sidebar-section:first-child { margin-top: 0; }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 2px solid transparent;
+    text-decoration: none;
+    margin-bottom: 2px;
+  }
+
+  .sidebar-item:hover {
+    color: var(--text);
+    background: var(--surface2);
+    border-color: var(--border);
+  }
+
+  .sidebar-item.active {
+    color: var(--primary);
+    background: rgba(234,88,12,0.1);
+    border-color: var(--primary);
+    box-shadow: 2px 2px 0 0 var(--primary);
+  }
+
+  .sidebar-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .sidebar-badge {
+    margin-left: auto;
+    background: var(--primary);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ── MAIN ────────────────────────────────────────── */
+  .main { flex: 1; padding: 24px; overflow-y: auto; }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+
+  .page-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-weight: 400;
+  }
+
+  /* ── BUTTONS ─────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 9px 18px;
+    border-radius: var(--radius);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.1s;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--dark);
+    box-shadow: var(--shadow-btn);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 6px 6px 0 0 #000;
+  }
+  .btn-primary:active {
+    transform: translateY(1px);
+    box-shadow: 1px 1px 0 0 #000;
+  }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: var(--border);
+    box-shadow: var(--shadow);
+  }
+  .btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 5px 5px 0 0 #000;
+    border-color: var(--text);
+  }
+  .btn-secondary:active { transform: translateY(1px); box-shadow: 1px 1px 0 0 #000; }
+
+  .btn-accent {
+    background: var(--accent);
+    color: #18181A;
+    border-color: #000;
+    box-shadow: var(--shadow-btn);
+  }
+  .btn-accent:hover { transform: translateY(-2px); box-shadow: 6px 6px 0 0 #000; }
+  .btn-accent:active { transform: translateY(1px); box-shadow: 1px 1px 0 0 #000; }
+
+  /* ── KPI CARDS ───────────────────────────────────── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.15s;
+  }
+
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .kpi-card.orange::before { background: var(--primary); }
+  .kpi-card.green::before  { background: var(--secondary); }
+  .kpi-card.amber::before  { background: var(--accent); }
+  .kpi-card.blue::before   { background: #3B82F6; }
+
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .kpi-delta {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .kpi-delta.up   { color: var(--secondary); }
+  .kpi-delta.down { color: #E11D48; }
+
+  /* ── TABLE ───────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .card-header {
+    padding: 14px 18px;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+  }
+
+  .card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  th {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    padding: 10px 18px;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+    background: var(--surface2);
+  }
+
+  td {
+    padding: 11px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ── BADGE STATUS ────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1.5px solid;
+  }
+
+  .badge-open    { color: #3B82F6; background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); }
+  .badge-progress{ color: var(--accent); background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); }
+  .badge-done    { color: var(--secondary); background: rgba(101,163,13,0.1); border-color: rgba(101,163,13,0.3); }
+  .badge-urgent  { color: var(--primary); background: rgba(234,88,12,0.1); border-color: rgba(234,88,12,0.3); }
+
+  /* ── PRIORITY DOT ────────────────────────────────── */
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-high   { background: #E11D48; }
+  .dot-med    { background: var(--accent); }
+  .dot-low    { background: var(--secondary); }
+
+  /* ── FORM ────────────────────────────────────────── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+  .form-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+
+  .form-input {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 9px 12px;
+    font-family: 'Figtree', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    outline: none;
+    transition: all 0.15s;
+    box-shadow: 2px 2px 0 0 #000;
+  }
+
+  .form-input:focus {
+    border-color: var(--primary);
+    box-shadow: 3px 3px 0 0 var(--primary);
+  }
+
+  .form-input::placeholder { color: var(--muted); }
+
+  /* ── LOGIN PAGE ──────────────────────────────────── */
+  .login-page {
+    display: none;
+    min-height: 100vh;
+    background: var(--bg);
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .login-page.show { display: flex; }
+
+  .login-decoration {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(82,82,91,0.15) 39px, rgba(82,82,91,0.15) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(82,82,91,0.15) 39px, rgba(82,82,91,0.15) 40px);
+    pointer-events: none;
+  }
+
+  .login-box {
+    background: var(--surface);
+    border: 3px solid var(--border);
+    border-radius: 10px;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 7px 7px 0 0 #000;
+    position: relative;
+    z-index: 1;
+  }
+
+  .login-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    color: var(--primary);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .login-tagline {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 30px;
+  }
+
+  .login-divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 20px 0;
+  }
+
+  /* ── TABS ────────────────────────────────────────── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .tab {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 10px 18px;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.15s;
+  }
+
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* ── UTILITY ─────────────────────────────────────── */
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .ml-auto { margin-left: auto; }
+  .text-muted { color: var(--muted); }
+  .text-sm { font-size: 12px; }
+
+  .tag-row { display: flex; align-items: center; gap: 4px; }
+
+  /* ── DEMO NAV ────────────────────────────────────── */
+  .demo-switcher {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    box-shadow: var(--shadow-lg);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 160px;
+  }
+
+  .demo-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+
+  .demo-btn {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 7px 10px;
+    border-radius: 4px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.12s;
+    text-align: left;
+  }
+
+  .demo-btn.active {
+    background: rgba(234,88,12,0.15);
+    border-color: var(--primary);
+    color: var(--primary);
+    box-shadow: 2px 2px 0 0 var(--primary);
+  }
+
+  .demo-btn:hover:not(.active) { color: var(--text); border-color: var(--text); }
+
+  .app-shell { display: block; }
+  .app-shell.hide { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ LOGIN ═══════════════════════ -->
+<div class="login-page" id="loginPage">
+  <div class="login-decoration"></div>
+  <div class="login-box">
+    <div class="login-logo">FixFlow</div>
+    <div class="login-tagline">Gestión de mantenimiento técnico</div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Correo electrónico</label>
+      <input class="form-input" type="email" placeholder="victor@empresa.com">
+    </div>
+    <div class="form-group" style="margin-bottom:20px">
+      <label class="form-label">Contraseña</label>
+      <input class="form-input" type="password" placeholder="••••••••">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:14px;padding:12px" onclick="showApp()">
+      → Ingresar al sistema
+    </button>
+    <hr class="login-divider">
+    <p style="text-align:center;font-size:12px;color:var(--muted)">
+      ¿Olvidaste tu contraseña? <a href="#" style="color:var(--primary);font-weight:600">Recuperar acceso</a>
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════ APP SHELL ═══════════════════ -->
+<div class="app-shell hide" id="appShell">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="logo">
+      <span style="display:inline-block;transform:rotate(-2deg)">FixFlow</span>
+      <span class="logo-badge">v2.1</span>
+    </div>
+    <div class="nav-links">
+      <a class="nav-link active" href="#">Dashboard</a>
+      <a class="nav-link" href="#">Órdenes</a>
+      <a class="nav-link" href="#">Técnicos</a>
+      <a class="nav-link" href="#">Activos</a>
+      <a class="nav-link" href="#">Reportes</a>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="text-muted text-sm" style="font-weight:500">Victor García</div>
+      <div class="nav-avatar">VG</div>
+    </div>
+  </nav>
+
+  <!-- BODY -->
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">Principal</div>
+      <a class="sidebar-item active" href="#">
+        <span class="sidebar-icon">⊞</span> Dashboard
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="sidebar-icon">⚙</span> Órdenes de Trabajo
+        <span class="sidebar-badge">12</span>
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="sidebar-icon">⚡</span> Urgentes
+        <span class="sidebar-badge" style="background:var(--primary)">3</span>
+      </a>
+
+      <div class="sidebar-section">Recursos</div>
+      <a class="sidebar-item" href="#">
+        <span class="sidebar-icon">👤</span> Técnicos
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="sidebar-icon">🔧</span> Inventario
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="sidebar-icon">📋</span> Activos
+      </a>
+
+      <div class="sidebar-section">Análisis</div>
+      <a class="sidebar-item" href="#">
+        <span class="sidebar-icon">📊</span> Reportes
+      </a>
+      <a class="sidebar-item" href="#">
+        <span class="sidebar-icon">⚙</span> Configuración
+      </a>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- PAGE HEADER -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Dashboard de Operaciones</h1>
+          <p class="page-sub">Miércoles 14 de mayo, 2025 — 42 órdenes activas</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary">↓ Exportar</button>
+          <button class="btn btn-primary">+ Nueva Orden</button>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <div class="tab active">Vista General</div>
+        <div class="tab">Mis Asignadas</div>
+        <div class="tab">Por Vencer</div>
+        <div class="tab">Completadas</div>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="kpi-grid">
+        <div class="kpi-card orange">
+          <div class="kpi-label">Órdenes Activas</div>
+          <div class="kpi-value">42</div>
+          <div class="kpi-delta up">↑ 8% vs ayer</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Completadas Hoy</div>
+          <div class="kpi-value">17</div>
+          <div class="kpi-delta up">↑ 23% objetivo</div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-label">Tiempo Medio</div>
+          <div class="kpi-value">2.4h</div>
+          <div class="kpi-delta down">↓ 12min vs media</div>
+        </div>
+        <div class="kpi-card blue">
+          <div class="kpi-label">Técnicos Activos</div>
+          <div class="kpi-value">9/12</div>
+          <div class="kpi-delta" style="color:var(--muted)">— 3 fuera de turno</div>
+        </div>
+      </div>
+
+      <!-- WORK ORDERS TABLE -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Órdenes de Trabajo Activas</span>
+          <div class="flex gap-2">
+            <input class="form-input" style="padding:6px 10px;font-size:12px;width:200px" placeholder="🔍 Buscar orden...">
+            <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px">Filtrar</button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Descripción</th>
+              <th>Técnico</th>
+              <th>Prioridad</th>
+              <th>Estado</th>
+              <th>Vence</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-family:'Space Grotesk';font-weight:700;color:var(--primary)">#FF-0418</td>
+              <td>Fallo HVAC — Planta 3, Zona B</td>
+              <td>Juan Martínez</td>
+              <td><div class="tag-row"><span class="dot dot-high"></span> Alta</div></td>
+              <td><span class="badge badge-urgent">Urgente</span></td>
+              <td style="color:var(--primary);font-weight:600">Hoy 15:00</td>
+              <td><button class="btn btn-secondary" style="padding:4px 10px;font-size:11px">Ver</button></td>
+            </tr>
+            <tr>
+              <td style="font-family:'Space Grotesk';font-weight:700;color:var(--primary)">#FF-0415</td>
+              <td>Revisión bomba hidráulica — Línea 1</td>
+              <td>Ana Roldán</td>
+              <td><div class="tag-row"><span class="dot dot-med"></span> Media</div></td>
+              <td><span class="badge badge-progress">En progreso</span></td>
+              <td>Mañana 09:00</td>
+              <td><button class="btn btn-secondary" style="padding:4px 10px;font-size:11px">Ver</button></td>
+            </tr>
+            <tr>
+              <td style="font-family:'Space Grotesk';font-weight:700;color:var(--primary)">#FF-0412</td>
+              <td>Calibración sensores temperatura — Sala 7</td>
+              <td>Pedro Ossa</td>
+              <td><div class="tag-row"><span class="dot dot-low"></span> Baja</div></td>
+              <td><span class="badge badge-open">Abierta</span></td>
+              <td>16 May 11:00</td>
+              <td><button class="btn btn-secondary" style="padding:4px 10px;font-size:11px">Ver</button></td>
+            </tr>
+            <tr>
+              <td style="font-family:'Space Grotesk';font-weight:700;color:var(--primary)">#FF-0409</td>
+              <td>Cambio rodamiento motor #4 — Taller</td>
+              <td>Laura Vásquez</td>
+              <td><div class="tag-row"><span class="dot dot-high"></span> Alta</div></td>
+              <td><span class="badge badge-progress">En progreso</span></td>
+              <td>Hoy 17:30</td>
+              <td><button class="btn btn-secondary" style="padding:4px 10px;font-size:11px">Ver</button></td>
+            </tr>
+            <tr>
+              <td style="font-family:'Space Grotesk';font-weight:700;color:var(--primary)">#FF-0406</td>
+              <td>Inspección eléctrica tablero principal</td>
+              <td>Carlos Benítez</td>
+              <td><div class="tag-row"><span class="dot dot-med"></span> Media</div></td>
+              <td><span class="badge badge-done">Completada</span></td>
+              <td>—</td>
+              <td><button class="btn btn-secondary" style="padding:4px 10px;font-size:11px">Ver</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- NEW ORDER FORM -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Crear Nueva Orden de Trabajo</span>
+          <span class="badge badge-open">Formulario rápido</span>
+        </div>
+        <div style="padding:20px">
+          <div class="form-grid" style="margin-bottom:14px">
+            <div class="form-group">
+              <label class="form-label">Título de la orden</label>
+              <input class="form-input" type="text" placeholder="Ej: Fallo en compresor de aire">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Técnico asignado</label>
+              <input class="form-input" type="text" placeholder="Seleccionar técnico...">
+            </div>
+          </div>
+          <div class="form-grid" style="margin-bottom:14px">
+            <div class="form-group">
+              <label class="form-label">Prioridad</label>
+              <input class="form-input" placeholder="Media">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fecha límite</label>
+              <input class="form-input" type="date">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:18px">
+            <label class="form-label">Descripción detallada</label>
+            <textarea class="form-input" rows="3" placeholder="Describe el problema o tarea de mantenimiento..."></textarea>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-primary">✓ Crear Orden</button>
+            <button class="btn btn-secondary">✕ Cancelar</button>
+            <button class="btn btn-accent" style="margin-left:auto">⚡ Crear y Asignar Urgente</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- DEMO SWITCHER -->
+<div class="demo-switcher">
+  <div class="demo-label">Vista actual</div>
+  <button class="demo-btn active" onclick="showApp()">⊞ Dashboard</button>
+  <button class="demo-btn" onclick="showLogin()">⟵ Login</button>
+</div>
+
+<script>
+  function showLogin() {
+    document.getElementById('loginPage').classList.add('show');
+    document.getElementById('appShell').classList.add('hide');
+    document.querySelectorAll('.demo-btn').forEach((b,i) => b.classList.toggle('active', i===1));
+  }
+  function showApp() {
+    document.getElementById('loginPage').classList.remove('show');
+    document.getElementById('appShell').classList.remove('hide');
+    document.querySelectorAll('.demo-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+  }
+  // start on login
+  showLogin();
+</script>
+</body>
+</html>

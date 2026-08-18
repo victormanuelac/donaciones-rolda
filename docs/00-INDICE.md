@@ -34,6 +34,7 @@ El desglose de esfuerzo por módulo y equipo más granular sigue siendo el de `0
 
 ## 2. Especificación técnica y arquitectura
 
+- [`14-Modulos-y-Funcionalidades.md`](14-Modulos-y-Funcionalidades.md) — **catálogo de los 7 módulos**: objetivo, funcionalidad, endpoints y pantallas de cada uno (documento de referencia funcional)
 - [`Especificaciones_Técnicas_y_Arquitectura_-_Donaciones_Rolda_v2.md`](Especificaciones_Técnicas_y_Arquitectura_-_Donaciones_Rolda_v2.md) — spec vigente (Módulos 1-7 + Módulo 7 integrado)
 - [`02-Modelo-Datos-MER-DDL.md`](02-Modelo-Datos-MER-DDL.md) — MER + DDL completo de Módulos 1-6 (12 tablas). *Nota: aún no incluye los roles `coordinator/doctor/donor/municipal` ni las 8 tablas del Módulo 7 — pendiente de fusionar con el modelo de `11-Modulo-7...md`.*
 - [`03-Funciones-Adicionales-Propuestas.md`](03-Funciones-Adicionales-Propuestas.md) — 5 funciones Fase II (geolocalización, reportes, QR, etc.)

@@ -159,3 +159,5 @@ git checkout test && git pull
 - [`docs/00-INDICE.md`](docs/00-INDICE.md) — índice completo de documentación de diseño y negocio
 - [`docs/15-Sistema-de-Diseno-Visual.md`](docs/15-Sistema-de-Diseno-Visual.md) — estándar de diseño visual de la aplicación
 - [`CLAUDE.md`](CLAUDE.md) — arquitectura técnica, stack, convenciones de código
+
+Víctor Álvarez

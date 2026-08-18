@@ -43,13 +43,13 @@ Al editar o crear documentos en `docs/`, sigue el patrón ya establecido: encabe
 ## Flujo de ramas y despliegue
 
 ```
-feature/xxx  →  PR + review  →  test  →  (CI/CD al ambiente de pruebas en EC2)  →  aprobado  →  main
+feature/xxx  →  PR (squash-merge, firmado)  →  test  →  (CI/CD al ambiente de pruebas en EC2)  →  PR aprobado  →  main
 ```
 
 - Toda rama nueva sale de `main` (`feature/...`, `fix/...`, `docs/...`).
 - El PR se abre contra `test`, no contra `main`. Mergear a `test` dispara el pipeline hacia el ambiente de pruebas en EC2 (ver `README.md`, sección "Ambiente de pruebas").
-- Solo después de validar en ese ambiente y con aprobación, `test` se mergea a `main` (producción).
-- Nunca push directo a `test` ni a `main` — siempre vía PR revisado. No confundir con el flujo `develop`/`release/vX.Y.Z` que describe `docs/13-Diagramas-Arquitectura.md`: ese diagrama quedó superado por este esquema más simple (18-ago-2026), no se ha vuelto a dibujar el diagrama pero la regla vigente es la de este archivo y `README.md`.
+- Solo después de validar en ese ambiente y con aprobación, se abre PR de `test` a `main` (producción).
+- `main` y `test` tienen un ruleset real en GitHub (no es solo una convención documentada), **acotado a esas dos ramas** (no a todo el repo, para no bloquear force-push/amend en ramas feature de trabajo): PR obligatorio con ≥1 aprobación, **squash-merge only** (rechaza commits de merge, historia lineal) y **commits firmados** (SSH o GPG — la clave debe estar registrada en GitHub como *Signing Key*, no solo como *Authentication Key*) — ver detalle de configuración en `README.md` sección 4. Quién tiene permiso de push en absoluto lo define el rol de colaborador (Settings → Collaborators), no el ruleset. Un push directo, con commits de merge o sin firmar es rechazado salvo que quien lo haga tenga bypass de owner; no uses ese bypass para saltarte el flujo, es solo para emergencias. No confundir con el flujo `develop`/`release/vX.Y.Z` que describe `docs/13-Diagramas-Arquitectura.md`: ese diagrama quedó superado por este esquema más simple (18-ago-2026).
 
 ## Arquitectura técnica
 

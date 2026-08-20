@@ -551,6 +551,17 @@ Observaciones: ___________________________________________
 `Cumple ☐   No cumple ☐`
 Observaciones: ___________________________________________
 
+### Caso 5.7 — Proyección de agotamiento
+
+| Paso | Acción |
+|---|---|
+| 1 | Con la cuenta de operador de prueba, ve al listado del Kardex sin aplicar ningún filtro de bodega. |
+
+**Resultado esperado:** aparece un aviso rojo ("Proyección de agotamiento") mencionando **Frijol** con una estimación de días restantes (dato sembrado por `DeliveriesDemoSeeder`: pocas existencias + entregas recientes sostenidas). Ítems sin salidas recientes no deben aparecer aquí aunque tengan poco stock.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
 ---
 
 ## 6. Módulo 1 — Portal Público de Búsqueda
@@ -657,7 +668,84 @@ Observaciones: ___________________________________________
 
 ---
 
-## 7. Resumen de resultados
+## 7. Módulo 6 — Entregas y Seguimiento
+
+Requiere la cuenta de operador de prueba y los hogares beneficiarios sembrados por `DeliveriesDemoSeeder` (Yolanda Pérez, Carlos Gómez, Ana Rodríguez).
+
+### Caso 7.1 — Acceso a Entregas según el rol
+
+| Paso | Acción |
+|---|---|
+| 1 | Inicia sesión con la cuenta de operador de prueba y entra a **Entregas y Seguimiento** desde el menú lateral. |
+| 2 | Cierra sesión e intenta entrar a `/entregas` con una cuenta de rol `donor`, `doctor` o `municipal` (o sin sesión). |
+
+**Resultado esperado:** el operador ve la pantalla sin problema. Los roles sin permiso (y los usuarios sin sesión) reciben un error 403 / son redirigidos al login.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 7.2 — Buscar el hogar beneficiario
+
+| Paso | Acción |
+|---|---|
+| 1 | En **Registrar entrega**, escribe 1-2 letras del nombre de un jefe de hogar (ej. "Yo"). |
+| 2 | Completa hasta 3 letras o más (ej. "Yol"). |
+
+**Resultado esperado:** con menos de 3 letras no aparece ningún resultado. Con 3 o más letras aparece el hogar que coincide, con su barrio/zona y tamaño del hogar. Al hacer clic, el hogar queda seleccionado y el buscador desaparece.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 7.3 — Registrar una entrega y ver el descuento del inventario
+
+| Paso | Acción |
+|---|---|
+| 1 | Con un hogar seleccionado, elige un insumo con existencias, una cantidad y un motivo, y guarda. |
+| 2 | Ve al Kardex y revisa la cantidad disponible del mismo lote. |
+
+**Resultado esperado:** aparece un mensaje de éxito y el formulario se limpia para registrar otra entrega. En el Kardex, la cantidad disponible del lote bajó exactamente en la cantidad entregada. La entrega aparece en el listado de **Entregas y Seguimiento** con el hogar correcto.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 7.4 — Aviso de entregas recientes al mismo hogar
+
+| Paso | Acción |
+|---|---|
+| 1 | Selecciona un hogar que ya tenga entregas previas (ej. Yolanda Pérez, sembrada con varias entregas de Arroz). |
+
+**Resultado esperado:** aparece un aviso "Entregas recientes a este hogar" listando los insumos y fechas de sus entregas anteriores, antes de completar una nueva.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 7.5 — No se puede entregar más de lo disponible
+
+| Paso | Acción |
+|---|---|
+| 1 | Selecciona un hogar y un lote, y escribe una cantidad mayor a la disponible. |
+| 2 | Intenta guardar. |
+
+**Resultado esperado:** aparece un error indicando cuánto hay disponible en realidad, y no se registra la entrega ni se descuenta inventario.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 7.6 — Listado de seguimiento con filtros
+
+| Paso | Acción |
+|---|---|
+| 1 | En **Entregas y Seguimiento**, busca por el nombre de un jefe de hogar. |
+| 2 | Quita el filtro de nombre y filtra por zona geográfica. |
+
+**Resultado esperado:** en ambos casos, el listado se reduce a las entregas que coinciden. Las salidas de Kardex que no tienen hogar beneficiario asociado (ej. donaciones a un comedor comunitario) nunca aparecen en este listado.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+---
+
+## 8. Resumen de resultados
 
 | # | Caso | Cumple | No cumple |
 |---|---|---|---|
@@ -700,6 +788,7 @@ Observaciones: ___________________________________________
 | 5.4 | Traslado entre bodegas | ☐ | ☐ |
 | 5.5 | Alertas de vencimiento y resolución | ☐ | ☐ |
 | 5.6 | Alerta de stock mínimo | ☐ | ☐ |
+| 5.7 | Proyección de agotamiento | ☐ | ☐ |
 | 6.1 | Buscador es lo primero que se ve | ☐ | ☐ |
 | 6.1B | Vista dividida con info de la app | ☐ | ☐ |
 | 6.2 | Semáforo según cantidad | ☐ | ☐ |
@@ -708,10 +797,16 @@ Observaciones: ___________________________________________
 | 6.5 | Ordenar por cercanía | ☐ | ☐ |
 | 6.6 | Teléfono oculto sin verificación | ☐ | ☐ |
 | 6.7 | Desbloquear contacto y WhatsApp | ☐ | ☐ |
+| 7.1 | Acceso a Entregas por rol | ☐ | ☐ |
+| 7.2 | Buscar hogar beneficiario | ☐ | ☐ |
+| 7.3 | Registrar entrega y descuento | ☐ | ☐ |
+| 7.4 | Aviso de entregas recientes | ☐ | ☐ |
+| 7.5 | No entrega más de lo disponible | ☐ | ☐ |
+| 7.6 | Listado de seguimiento con filtros | ☐ | ☐ |
 
-**Total cumple:** ___ / 47
+**Total cumple:** ___ / 54
 
-## 8. Hallazgos (bugs encontrados)
+## 9. Hallazgos (bugs encontrados)
 
 Para cada caso marcado "No cumple", documenta aquí con el mismo número de caso:
 

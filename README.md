@@ -77,6 +77,10 @@ El mismo seed corre `database/seeders/KardexDemoSeeder.php`: crea 2 bodegas de e
 
 > ⚠️ **Solo para local/pruebas.** Estas credenciales están en texto plano en este README a propósito — nunca corras este seeder contra el ambiente de producción, y cámbialas si el ambiente de pruebas en EC2 queda expuesto más allá de tu equipo.
 
+### Datos de prueba de Entregas y Seguimiento (Módulo 6)
+
+El mismo seed corre `database/seeders/DeliveriesDemoSeeder.php`: crea 3 hogares beneficiarios de ejemplo (como si vinieran del censo del Módulo 7) y varias entregas históricas del operador de prueba hacia esos hogares, usando el mismo login que el Kardex — sin credenciales nuevas. Incluye un ítem (`Frijol`) con pocas existencias y consumo reciente sostenido, para ver la proyección de agotamiento en `/kardex` y en `/entregas/registrar`.
+
 ### Alias `sail` (opcional, pero recomendado)
 
 Para no escribir `./vendor/bin/sail` cada vez:

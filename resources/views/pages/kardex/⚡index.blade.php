@@ -2,6 +2,7 @@
 
 use App\Models\MasterItem;
 use App\Models\StockEntry;
+use App\Services\Kardex\StockProjectionService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -47,6 +48,29 @@ new #[Title('Kardex — Inventario')] class extends Component {
             ->get()
             ->filter(fn (MasterItem $item) => $item->isBelowReorderPoint($warehouseIds));
     }
+
+    /**
+     * Ítems con existencias que, al ritmo de consumo de los últimos 30 días,
+     * se agotarían en 21 días o menos. Requiere historial de salidas reciente
+     * para poder proyectar — sin eso no aparece aquí (ver StockProjectionService).
+     */
+    #[Computed]
+    public function projectedStockouts()
+    {
+        $warehouseIds = $this->warehouseFilter ? [$this->warehouseFilter] : $this->warehouses->pluck('id')->all();
+        $projection = app(StockProjectionService::class);
+
+        return MasterItem::query()
+            ->whereHas('stockEntries', fn ($query) => $query->whereIn('warehouse_id', $warehouseIds)->where('status', 'available'))
+            ->get()
+            ->map(fn (MasterItem $item) => [
+                'item' => $item,
+                'days_remaining' => $projection->daysRemaining($item, $warehouseIds),
+            ])
+            ->filter(fn (array $row) => $row['days_remaining'] !== null && $row['days_remaining'] <= 21)
+            ->sortBy('days_remaining')
+            ->values();
+    }
 }; ?>
 
 <section class="w-full">
@@ -68,6 +92,17 @@ new #[Title('Kardex — Inventario')] class extends Component {
             <flux:callout.heading>{{ __('Ítems bajo el punto de reorden') }}</flux:callout.heading>
             <flux:callout.text>
                 {{ $this->lowStockItems->map(fn ($item) => "{$item->name} ({$item->totalAvailableQuantity($this->warehouseFilter ? [$this->warehouseFilter] : $this->warehouses->pluck('id')->all())} {$item->unit_of_measure})")->implode(' · ') }}
+            </flux:callout.text>
+        </flux:callout>
+    @endif
+
+    @if ($this->projectedStockouts->isNotEmpty())
+        <flux:callout variant="danger" icon="chart-bar" class="mb-4">
+            <flux:callout.heading>{{ __('Proyección de agotamiento (según ritmo de entregas de los últimos 30 días)') }}</flux:callout.heading>
+            <flux:callout.text>
+                {{ $this->projectedStockouts->map(fn (array $row) => $row['days_remaining'] <= 0
+                    ? "{$row['item']->name} ({$row['item']->unit_of_measure}): ".__('agotado')
+                    : "{$row['item']->name}: ~".__(':days días', ['days' => $row['days_remaining']]))->implode(' · ') }}
             </flux:callout.text>
         </flux:callout>
     @endif

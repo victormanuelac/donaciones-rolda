@@ -26,6 +26,10 @@
                         <flux:sidebar.item icon="archive-box" :href="route('kardex.index')" :current="request()->routeIs('kardex.*')" wire:navigate>
                             {{ __('Kardex') }}
                         </flux:sidebar.item>
+
+                        <flux:sidebar.item icon="truck" :href="route('deliveries.index')" :current="request()->routeIs('deliveries.*')" wire:navigate>
+                            {{ __('Entregas y Seguimiento') }}
+                        </flux:sidebar.item>
                     @endif
                 </flux:sidebar.group>
 

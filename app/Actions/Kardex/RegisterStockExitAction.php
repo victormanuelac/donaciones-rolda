@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 class RegisterStockExitAction
 {
     /**
-     * @param  array{client_uuid?: string|null, stock_entry_id: int, warehouse_id: int, quantity_released: int, exit_reason: string, received_by_name?: string|null, destination_zone_id?: int|null, destination_description?: string|null, notes?: string|null}  $payload
+     * @param  array{client_uuid?: string|null, stock_entry_id: int, warehouse_id: int, family_id?: int|null, quantity_released: int, exit_reason: string, received_by_name?: string|null, destination_zone_id?: int|null, destination_description?: string|null, notes?: string|null}  $payload
      */
     public function handle(array $payload, User $operator): StockExit
     {

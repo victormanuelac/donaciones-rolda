@@ -89,4 +89,15 @@ class Family extends Model
     {
         return $this->hasMany(Beneficiary::class);
     }
+
+    /**
+     * Entregas físicas (Módulo 6) recibidas por este hogar. Se usa para el
+     * historial de seguimiento y para advertir de posibles duplicados de ayuda.
+     *
+     * @return HasMany<StockExit, $this>
+     */
+    public function deliveries(): HasMany
+    {
+        return $this->hasMany(StockExit::class);
+    }
 }

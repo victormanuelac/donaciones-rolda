@@ -31,6 +31,7 @@ class StoreStockExitBatchRequest extends FormRequest
             'entries.*.client_uuid' => ['required', 'uuid'],
             'entries.*.stock_entry_id' => ['required', 'integer', 'exists:stock_entries,id'],
             'entries.*.warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
+            'entries.*.family_id' => ['nullable', 'integer', 'exists:families,id'],
             'entries.*.quantity_released' => ['required', 'integer', 'min:1'],
             'entries.*.exit_reason' => ['required', 'in:donation,subsidized_sale,emergency_assistance,loss,damage,expired_discard,other'],
             'entries.*.received_by_name' => ['nullable', 'string', 'max:150'],

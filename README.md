@@ -64,6 +64,17 @@ El seeder (`database/seeders/DatabaseSeeder.php`, se ejecuta con `sail artisan m
 ./vendor/bin/sail artisan migrate:fresh --seed   # recrea la BD e incluye este usuario
 ```
 
+### Usuario de prueba (operador de campo) + datos de Kardex
+
+El mismo seed corre `database/seeders/KardexDemoSeeder.php`: crea 2 bodegas de ejemplo (Bodega Centro, Bodega Guayabal), su catálogo de categorías/ítems, un operador ya asignado a ambas bodegas (sin depender de `tinker` para probar el Kardex) y existencias de ejemplo cubriendo los tres niveles de semáforo, un lote agotado (estado `withdrawn`), dos lotes por vencer en pocos días (para ver alertas en `/kardex/vencimientos`) y dos ítems por debajo de su punto de reorden.
+
+| Campo | Valor |
+|---|---|
+| Email | `operador@donaciones-rolda.test` |
+| Password | `OperadorRolda#2026` |
+| Rol | `operator` (`App\Enums\UserRole::Operator`) |
+| Estado | `active`, asignado a Bodega Centro y Bodega Guayabal |
+
 > ⚠️ **Solo para local/pruebas.** Estas credenciales están en texto plano en este README a propósito — nunca corras este seeder contra el ambiente de producción, y cámbialas si el ambiente de pruebas en EC2 queda expuesto más allá de tu equipo.
 
 ### Alias `sail` (opcional, pero recomendado)

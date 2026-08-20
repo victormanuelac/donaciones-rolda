@@ -105,6 +105,10 @@ M1-M6 son la base operativa (inventario → entrega). M7 se integra transversalm
 
 **Campos PII a encriptar a nivel de aplicación (AES-256, cast `Encrypted::class`):** `users.document_id`, `users.phone`, `users.email`, `warehouses.contact_phone`, `stock_exits.received_by_name`. Trátalo como requisito desde el primer commit que toque estas tablas, no como mejora futura.
 
+### Convención: seeder con datos de prueba para cada módulo nuevo
+
+Cuando un módulo nuevo llega a `test` con sus propias migraciones/modelos, siempre crea también un seeder con datos de prueba realistas (registrado en `database/seeders/DatabaseSeeder.php`), no solo el esquema vacío. El objetivo es que el ambiente de pruebas en EC2 y cualquiera que corra `sail artisan migrate:fresh --seed` tenga algo real con qué probar, sin depender de `tinker` para armar el escenario a mano. Referencia: `database/seeders/KardexDemoSeeder.php` — no solo crea catálogo/bodegas, también siembra movimientos (entradas, salidas), casos límite a propósito (un lote agotado, lotes por vencer, ítems bajo el punto de reorden) y, si el módulo lo requiere, un usuario de prueba con el rol/permisos necesarios para operarlo. Si el seeder crea credenciales, documéntalas en `README.md` con la misma advertencia de "solo local/pruebas, nunca correr contra producción" que ya usan el admin y el operador de ejemplo.
+
 ### Motor de scoring de vulnerabilidad (Módulo 7)
 
 Score ponderado 0-100 sobre 4 factores — demográfico (0-30), salud (0-30), nutricional (0-20), social (0-20) — que determina 3 niveles de prioridad: ≥70 crítico, 40-69 prioritario, <40 normal. Ver `ScoringEngine` (`App\Services\VulnerabilityScoring`) y `RecommendationService` (`App\Services\RecommendationEngine`) documentados con código de ejemplo en `docs/11-Modulo-7-...md`. Si se modifica la lógica de puntaje, hazlo ahí y en el código a la vez — es el criterio de priorización de todo el sistema, no un detalle cosmético.

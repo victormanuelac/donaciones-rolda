@@ -14,6 +14,7 @@ use App\Services\Turnstile\TurnstileVerifier;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 /**
  * Portal público de búsqueda (Módulo 1): ciudadanos buscan insumos disponibles
@@ -26,7 +27,7 @@ class SearchController extends Controller
     {
         return view('pages.public.search', [
             'categories' => Category::where('is_active', true)->orderBy('sort_order')->get(['id', 'name']),
-            'zones' => GeographicZone::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'zones' => GeographicZone::where('is_active', true)->orderBy('name')->get(['id', 'name', 'latitude', 'longitude']),
             'activeWarehousesCount' => Warehouse::where('is_active', true)->count(),
             'availableItemsCount' => StockEntry::where('status', 'available')->distinct('master_item_id')->count('master_item_id'),
         ]);
@@ -64,48 +65,85 @@ class SearchController extends Controller
             ->get();
 
         $results = $entries
-            ->groupBy(fn (StockEntry $entry) => "{$entry->master_item_id}-{$entry->warehouse_id}")
-            ->map(function ($group) use ($lat, $lng) {
-                $first = $group->first();
-                $availableQuantity = (int) $group->sum(fn (StockEntry $entry) => $entry->availableQuantity());
-
-                if ($availableQuantity <= 0) {
-                    return null;
-                }
-
-                $level = AvailabilityLevel::fromQuantity($availableQuantity);
-                $earliestExpiry = $group->pluck('expiry_date')->filter()->sort()->first();
-
-                $distanceKm = ($lat !== null && $lng !== null && $first->warehouse->latitude !== null)
-                    ? round(HaversineDistance::kilometers($lat, $lng, (float) $first->warehouse->latitude, (float) $first->warehouse->longitude), 1)
-                    : null;
-
-                return [
-                    'master_item_id' => $first->master_item_id,
-                    'item_name' => $first->masterItem->name,
-                    'unit_of_measure' => $first->masterItem->unit_of_measure,
-                    'category_name' => $first->masterItem->category->name,
-                    'warehouse_id' => $first->warehouse_id,
-                    'warehouse_name' => $first->warehouse->name,
-                    'zone_name' => $first->warehouse->zone?->name,
-                    'latitude' => $first->warehouse->latitude !== null ? (float) $first->warehouse->latitude : null,
-                    'longitude' => $first->warehouse->longitude !== null ? (float) $first->warehouse->longitude : null,
-                    'available_quantity' => $availableQuantity,
-                    'availability_level' => $level->value,
-                    'availability_label' => $level->label(),
-                    'availability_emoji' => $level->emoji(),
-                    'expiry_date' => $earliestExpiry?->toDateString(),
-                    'distance_km' => $distanceKm,
-                ];
-            })
+            ->groupBy('master_item_id')
+            ->map(fn (Collection $itemGroup) => $this->buildItemResult($itemGroup, $lat, $lng))
             ->filter()
             ->values();
 
         $results = $lat !== null && $lng !== null
-            ? $results->sortBy('distance_km')->values()
-            : $results->sortByDesc('available_quantity')->values();
+            ? $results->sortBy('closest_distance_km')->values()
+            : $results->sortByDesc('total_available_quantity')->values();
 
         return response()->json(['results' => $results]);
+    }
+
+    /**
+     * @param  Collection<int, StockEntry>  $itemGroup
+     * @return array{master_item_id: int, item_name: string, unit_of_measure: string, category_name: string, total_available_quantity: int, closest_distance_km: float|null, locations: list<array{warehouse_id: int, warehouse_name: string, zone_name: string|null, latitude: float|null, longitude: float|null, available_quantity: int, availability_level: string, availability_label: string, availability_emoji: string, expiry_date: string|null, distance_km: float|null}>}|null
+     */
+    private function buildItemResult(Collection $itemGroup, ?float $lat, ?float $lng): ?array
+    {
+        $first = $itemGroup->first();
+
+        $locations = $itemGroup
+            ->groupBy('warehouse_id')
+            ->map(fn (Collection $warehouseGroup) => $this->buildLocationResult($warehouseGroup, $lat, $lng))
+            ->filter()
+            ->values();
+
+        if ($locations->isEmpty()) {
+            return null;
+        }
+
+        $locations = array_values(($lat !== null && $lng !== null
+            ? $locations->sortBy('distance_km')
+            : $locations->sortByDesc('available_quantity'))
+            ->all());
+
+        return [
+            'master_item_id' => $first->master_item_id,
+            'item_name' => $first->masterItem->name,
+            'unit_of_measure' => $first->masterItem->unit_of_measure,
+            'category_name' => $first->masterItem->category->name,
+            'total_available_quantity' => (int) array_sum(array_column($locations, 'available_quantity')),
+            'closest_distance_km' => $locations[0]['distance_km'] ?? null,
+            'locations' => $locations,
+        ];
+    }
+
+    /**
+     * @param  Collection<int, StockEntry>  $warehouseGroup
+     * @return array{warehouse_id: int, warehouse_name: string, zone_name: string|null, latitude: float|null, longitude: float|null, available_quantity: int, availability_level: string, availability_label: string, availability_emoji: string, expiry_date: string|null, distance_km: float|null}|null
+     */
+    private function buildLocationResult(Collection $warehouseGroup, ?float $lat, ?float $lng): ?array
+    {
+        $entry = $warehouseGroup->first();
+        $availableQuantity = (int) $warehouseGroup->sum(fn (StockEntry $e) => $e->availableQuantity());
+
+        if ($availableQuantity <= 0) {
+            return null;
+        }
+
+        $level = AvailabilityLevel::fromQuantity($availableQuantity);
+        $earliestExpiry = $warehouseGroup->pluck('expiry_date')->filter()->sort()->first();
+
+        $distanceKm = ($lat !== null && $lng !== null && $entry->warehouse->latitude !== null)
+            ? round(HaversineDistance::kilometers($lat, $lng, (float) $entry->warehouse->latitude, (float) $entry->warehouse->longitude), 1)
+            : null;
+
+        return [
+            'warehouse_id' => $entry->warehouse_id,
+            'warehouse_name' => $entry->warehouse->name,
+            'zone_name' => $entry->warehouse->zone?->name,
+            'latitude' => $entry->warehouse->latitude !== null ? (float) $entry->warehouse->latitude : null,
+            'longitude' => $entry->warehouse->longitude !== null ? (float) $entry->warehouse->longitude : null,
+            'available_quantity' => $availableQuantity,
+            'availability_level' => $level->value,
+            'availability_label' => $level->label(),
+            'availability_emoji' => $level->emoji(),
+            'expiry_date' => $earliestExpiry?->toDateString(),
+            'distance_km' => $distanceKm,
+        ];
     }
 
     public function warehouses(): JsonResponse

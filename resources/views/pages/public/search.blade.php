@@ -34,7 +34,7 @@
             </nav>
         </header>
 
-        <main class="relative z-10 max-w-6xl mx-auto px-6 py-10" x-data="publicSearch()">
+        <main class="relative z-10 max-w-6xl mx-auto px-6 py-10" x-data="publicSearch(@js($zones))">
             {{-- El buscador es lo primero que se ve: título breve + input grande antes que cualquier otra cosa. --}}
             <div class="mb-6">
                 <h1 class="font-display text-3xl md:text-4xl font-extrabold tracking-tight text-ink mb-2">{{ __('¿Qué insumo necesitas?') }}</h1>
@@ -65,7 +65,7 @@
                             <span x-show="locating" x-cloak>{{ __('Ubicando...') }}</span>
                         </flux:button>
                         <flux:button x-show="userLocation" x-cloak x-on:click="clearLocation()" icon="x-mark" class="w-full">
-                            {{ __('Quitar ubicación') }}
+                            <span x-text="locationLabel"></span>
                         </flux:button>
                     </div>
                 </div>
@@ -74,30 +74,43 @@
             {{-- Vista dividida: resultados a la izquierda, información de la aplicación + mapa a la derecha. --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 space-y-4">
+                    <p x-show="!searched && !loading" class="text-muted text-sm">
+                        {{ __('Escribe qué necesitas o elige una categoría/zona arriba para ver los insumos disponibles.') }}
+                    </p>
+
                     <p x-show="loading" x-cloak class="text-muted text-sm">{{ __('Buscando...') }}</p>
 
                     <p x-show="searched && !loading && results.length === 0" x-cloak class="text-muted text-sm">
                         {{ __('No encontramos insumos disponibles con esos criterios. Intenta con otra palabra o quita algún filtro.') }}
                     </p>
 
-                    <template x-for="item in results" :key="item.master_item_id + '-' + item.warehouse_id">
-                        <div class="card-brutal p-4 flex items-start justify-between gap-4">
-                            <div>
+                    <template x-for="item in results" :key="item.master_item_id">
+                        <div class="card-brutal p-4">
+                            <div class="mb-3">
                                 <p class="font-display font-bold text-ink" x-text="item.item_name"></p>
                                 <p class="text-xs text-muted" x-text="item.category_name"></p>
-                                <p class="text-sm text-muted mt-1">
-                                    <span x-text="item.warehouse_name"></span>
-                                    <template x-if="item.zone_name"> — <span x-text="item.zone_name"></span></template>
-                                    <template x-if="item.distance_km !== null"> (<span x-text="item.distance_km"></span> km)</template>
-                                </p>
-                                <template x-if="item.expiry_date">
-                                    <p class="text-xs text-muted mt-1">{{ __('Vence') }}: <span x-text="item.expiry_date"></span></p>
-                                </template>
                             </div>
-                            <div class="text-right shrink-0">
-                                <p class="text-2xl" x-text="item.availability_emoji"></p>
-                                <p class="text-xs text-muted" x-text="item.availability_label"></p>
-                                <flux:button size="sm" class="mt-2" x-on:click="openContact(item.warehouse_id, item.warehouse_name)">{{ __('Contactar') }}</flux:button>
+
+                            <div class="divide-y divide-line">
+                                <template x-for="location in item.locations" :key="item.master_item_id + '-' + location.warehouse_id">
+                                    <div class="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
+                                        <div>
+                                            <p class="text-sm text-ink font-medium">
+                                                <span x-text="location.warehouse_name"></span>
+                                                <template x-if="location.zone_name"> — <span x-text="location.zone_name"></span></template>
+                                                <template x-if="location.distance_km !== null"> (<span x-text="location.distance_km"></span> km)</template>
+                                            </p>
+                                            <template x-if="location.expiry_date">
+                                                <p class="text-xs text-muted mt-1">{{ __('Vence') }}: <span x-text="location.expiry_date"></span></p>
+                                            </template>
+                                        </div>
+                                        <div class="text-right shrink-0">
+                                            <p class="text-2xl" x-text="location.availability_emoji"></p>
+                                            <p class="text-xs text-muted" x-text="location.availability_label"></p>
+                                            <flux:button size="sm" class="mt-2" x-on:click="openContact(location.warehouse_id, location.warehouse_name)">{{ __('Contactar') }}</flux:button>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     </template>

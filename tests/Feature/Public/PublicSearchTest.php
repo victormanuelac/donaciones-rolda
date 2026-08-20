@@ -41,6 +41,23 @@ test('el buscador es lo primero que se ve en la home', function () {
     $this->get('/')->assertSeeInOrder(['¿Qué insumo necesitas?', 'Contactar', 'centros de acopio activos']);
 });
 
+test('la lista de insumos no se muestra hasta que la persona busque', function () {
+    $warehouse = publicWarehouse();
+    $item = publicItem();
+    $operator = User::factory()->create();
+
+    StockEntry::create([
+        'master_item_id' => $item->id,
+        'warehouse_id' => $warehouse->id,
+        'registered_by_user_id' => $operator->id,
+        'quantity' => 30,
+    ]);
+
+    $response = $this->get('/');
+
+    $response->assertSee('Escribe qué necesitas o elige una categoría/zona arriba para ver los insumos disponibles.');
+});
+
 test('/buscar redirige a la home', function () {
     $this->get('/buscar')->assertRedirect('/');
 });
@@ -62,8 +79,27 @@ test('un ciudadano no autenticado puede buscar insumos disponibles', function ()
     $response->assertOk();
     $response->assertJsonCount(1, 'results');
     $response->assertJsonPath('results.0.item_name', 'Suero Oral');
-    $response->assertJsonPath('results.0.availability_level', 'high');
-    $response->assertJsonPath('results.0.warehouse_name', 'Bodega Pública');
+    $response->assertJsonPath('results.0.locations.0.availability_level', 'high');
+    $response->assertJsonPath('results.0.locations.0.warehouse_name', 'Bodega Pública');
+});
+
+test('un item disponible en varias bodegas aparece una sola vez con todas sus bodegas anidadas', function () {
+    $warehouseA = publicWarehouse(['name' => 'Bodega A']);
+    $warehouseB = publicWarehouse(['name' => 'Bodega B']);
+    $item = publicItem();
+    $operator = User::factory()->create();
+
+    StockEntry::create(['master_item_id' => $item->id, 'warehouse_id' => $warehouseA->id, 'registered_by_user_id' => $operator->id, 'quantity' => 25]);
+    StockEntry::create(['master_item_id' => $item->id, 'warehouse_id' => $warehouseB->id, 'registered_by_user_id' => $operator->id, 'quantity' => 10]);
+
+    $response = $this->getJson('/api/public/search?q=suero');
+
+    $response->assertOk();
+    $response->assertJsonCount(1, 'results');
+    $response->assertJsonCount(2, 'results.0.locations');
+    $response->assertJsonPath('results.0.total_available_quantity', 35);
+    $response->assertJsonPath('results.0.locations.0.warehouse_name', 'Bodega A');
+    $response->assertJsonPath('results.0.locations.1.warehouse_name', 'Bodega B');
 });
 
 test('la busqueda nunca expone el telefono o correo de contacto de la bodega', function () {
@@ -103,7 +139,7 @@ test('el semaforo cambia segun la cantidad disponible', function ($quantity, $ex
 
     $response = $this->getJson('/api/public/search');
 
-    $response->assertJsonPath('results.0.availability_level', $expectedLevel);
+    $response->assertJsonPath('results.0.locations.0.availability_level', $expectedLevel);
 })->with([
     'alta (>20)' => [25, 'high'],
     'media (6-20)' => [10, 'medium'],
@@ -185,7 +221,7 @@ test('filtra por categoria y por zona', function () {
 
     $byZone = $this->getJson('/api/public/search?zone_id='.$zone->id);
     $byZone->assertJsonCount(1, 'results');
-    $byZone->assertJsonPath('results.0.warehouse_name', 'Bodega Pública');
+    $byZone->assertJsonPath('results.0.locations.0.warehouse_name', 'Bodega Pública');
 
     $byCategory = $this->getJson('/api/public/search?category_id='.$item->category_id);
     $byCategory->assertJsonCount(1, 'results');
@@ -202,8 +238,9 @@ test('ordena por distancia cuando se envia la ubicacion del ciudadano', function
 
     $response = $this->getJson('/api/public/search?lat=4.4144&lng=-76.1536');
 
-    $response->assertJsonPath('results.0.warehouse_name', 'Cercana');
-    $response->assertJsonPath('results.1.warehouse_name', 'Lejana');
+    $response->assertJsonCount(1, 'results');
+    $response->assertJsonPath('results.0.locations.0.warehouse_name', 'Cercana');
+    $response->assertJsonPath('results.0.locations.1.warehouse_name', 'Lejana');
 });
 
 test('el listado publico de bodegas no incluye datos de contacto', function () {

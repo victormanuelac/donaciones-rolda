@@ -31,15 +31,20 @@ export default function publicResultsMap() {
             const byWarehouse = new Map();
 
             for (const item of results) {
-                if (item.latitude === null || item.longitude === null) {
-                    continue;
-                }
+                for (const location of item.locations) {
+                    if (location.latitude === null || location.longitude === null) {
+                        continue;
+                    }
 
-                if (!byWarehouse.has(item.warehouse_id)) {
-                    byWarehouse.set(item.warehouse_id, { name: item.warehouse_name, lat: item.latitude, lng: item.longitude, items: [] });
-                }
+                    if (!byWarehouse.has(location.warehouse_id)) {
+                        byWarehouse.set(location.warehouse_id, { name: location.warehouse_name, lat: location.latitude, lng: location.longitude, items: [] });
+                    }
 
-                byWarehouse.get(item.warehouse_id).items.push(item);
+                    byWarehouse.get(location.warehouse_id).items.push({
+                        item_name: item.item_name,
+                        availability_emoji: location.availability_emoji,
+                    });
+                }
             }
 
             for (const warehouse of byWarehouse.values()) {

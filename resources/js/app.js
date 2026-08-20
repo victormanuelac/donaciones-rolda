@@ -4,6 +4,8 @@ import { initFallbackMap } from './census/map.js';
 import stockEntryForm from './kardex/entry-form.js';
 import stockExitForm from './kardex/exit-form.js';
 import stockTransferForm from './kardex/transfer-form.js';
+import publicSearch from './public/search.js';
+import publicResultsMap from './public/results-map.js';
 import { watchConnectivity } from './offline/sync.js';
 
 document.addEventListener('alpine:init', () => {
@@ -16,6 +18,8 @@ document.addEventListener('alpine:init', () => {
     window.Alpine.data('stockEntryForm', stockEntryForm);
     window.Alpine.data('stockExitForm', stockExitForm);
     window.Alpine.data('stockTransferForm', stockTransferForm);
+    window.Alpine.data('publicSearch', publicSearch);
+    window.Alpine.data('publicResultsMap', publicResultsMap);
 });
 
 if ('serviceWorker' in navigator) {

@@ -51,9 +51,13 @@
                     {{ __('Plataforma para rastrear y gestionar la disponibilidad de medicamentos, insumos médicos, alimentos y herramientas durante emergencias locales en Roldanillo.') }}
                 </p>
                 <div class="flex flex-wrap gap-3">
-                    <a href="{{ route('login') }}" wire:navigate
+                    <a href="{{ route('public.search') }}"
                         class="btn-brutal bg-primary text-white border-canvas px-6 py-3 text-sm">
-                        → {{ __('Acceder al sistema') }}
+                        → {{ __('Buscar insumos disponibles') }}
+                    </a>
+                    <a href="{{ route('login') }}" wire:navigate
+                        class="btn-brutal bg-surface-2 text-ink border-line px-6 py-3 text-sm">
+                        {{ __('Acceder al sistema') }}
                     </a>
                 </div>
             </div>

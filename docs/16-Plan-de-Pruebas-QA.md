@@ -1,6 +1,6 @@
 # 🧪 Plan de Pruebas QA — Funcionalidades en construcción
 
-**Alcance de esta versión:** Módulo 2 (Autenticación y Roles), el Formulario de Encuestas — Censo de Hogares (Fase 1 de triaje + registro de integrantes) y Módulo 3 (Kardex/Inventario de centros de acopio, incluido el catálogo administrable de Bodegas / Centros de Acopio, control de vencidos, FEFO, traslados entre bodegas, alertas de vencimiento y de stock mínimo). Se actualiza a medida que se agregan módulos nuevos.
+**Alcance de esta versión:** Módulo 1 (Portal Público de Búsqueda, sin autenticación), Módulo 2 (Autenticación y Roles), el Formulario de Encuestas — Censo de Hogares (Fase 1 de triaje + registro de integrantes) y Módulo 3 (Kardex/Inventario de centros de acopio, incluido el catálogo administrable de Bodegas / Centros de Acopio, control de vencidos, FEFO, traslados entre bodegas, alertas de vencimiento y de stock mínimo). Se actualiza a medida que se agregan módulos nuevos.
 
 Este documento es para quien haga de **QA**: cada caso trae los pasos exactos a ejecutar y la respuesta que debes esperar. Marca **Cumple** o **No cumple** en cada caso y anota cualquier diferencia en Observaciones — no interpretes, compara el resultado real contra el esperado tal como está escrito.
 
@@ -554,7 +554,99 @@ Observaciones: ___________________________________________
 
 ---
 
-## 6. Resumen de resultados
+## 6. Módulo 1 — Portal Público de Búsqueda
+
+Todos los casos de esta sección se hacen **sin iniciar sesión** (ventana de incógnito). Necesitas al menos un insumo con existencias registrado desde el Kardex (usa el Caso 4.2 de este mismo documento para tener datos reales).
+
+### Caso 6.1 — Buscar sin cuenta
+
+| Paso | Acción |
+|---|---|
+| 1 | Abre la URL del ambiente en incógnito y haz clic en **Buscar insumos disponibles** (o ve directo a `/buscar`). |
+| 2 | Escribe parte del nombre de un insumo que sepas que tiene existencias (ej. "suero", "arroz"). |
+
+**Resultado esperado:** la página carga sin pedir login. A medida que escribes, aparecen tarjetas de resultados con el nombre del insumo, la bodega, la cantidad disponible y un semáforo de color (🟢🟡🔴).
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 6.2 — El semáforo corresponde a la cantidad
+
+| Paso | Acción |
+|---|---|
+| 1 | Busca un insumo con más de 20 unidades disponibles en una bodega. Anota el color del semáforo. |
+| 2 | Busca uno con entre 6 y 20. Anota el color. |
+| 3 | Busca uno con 5 o menos. Anota el color. |
+
+**Resultado esperado:** más de 20 → 🟢 Alta; entre 6 y 20 → 🟡 Media; 5 o menos → 🔴 Baja. Un insumo totalmente agotado (0 disponible) no debe aparecer en los resultados.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 6.3 — Filtros por categoría y zona
+
+| Paso | Acción |
+|---|---|
+| 1 | Sin escribir nada en el buscador, selecciona una categoría en el filtro. |
+| 2 | Quita ese filtro y selecciona una zona. |
+
+**Resultado esperado:** en ambos casos, los resultados se reducen a solo lo que coincide con el filtro elegido.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 6.4 — Mapa de resultados
+
+| Paso | Acción |
+|---|---|
+| 1 | Con resultados visibles, revisa el mapa a la derecha. |
+| 2 | Haz clic en un marcador. |
+
+**Resultado esperado:** aparece un marcador por cada bodega con resultados. Al hacer clic, se abre un globo con el nombre de la bodega y la lista de insumos disponibles ahí (con su semáforo).
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 6.5 — Ordenar por cercanía con "Usar mi ubicación"
+
+| Paso | Acción |
+|---|---|
+| 1 | Haz clic en **Usar mi ubicación** y acepta el permiso de ubicación del navegador. |
+| 2 | Revisa el orden de los resultados y si aparece la distancia en km en cada tarjeta. |
+
+**Resultado esperado:** cada tarjeta muestra la distancia aproximada en km, y los resultados quedan ordenados del más cercano al más lejano.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 6.6 — El teléfono de la bodega no se ve sin verificación
+
+| Paso | Acción |
+|---|---|
+| 1 | Con resultados visibles, revisa las tarjetas y el mapa: busca si el número de teléfono de alguna bodega aparece en cualquier parte de la pantalla. |
+| 2 | Haz clic en **Contactar** sobre cualquier resultado. |
+
+**Resultado esperado:** en el paso 1, el teléfono **no debe verse en ningún lado** — ni en las tarjetas ni en el popup del mapa. En el paso 2 se abre un modal pidiendo completar una verificación (Cloudflare Turnstile, la casilla "No soy un robot") antes de mostrar cualquier dato de contacto.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 6.7 — Desbloquear contacto y escribir por WhatsApp
+
+| Paso | Acción |
+|---|---|
+| 1 | En el modal de contacto, completa la verificación de Turnstile. |
+| 2 | Haz clic en **Ver contacto**. |
+| 3 | Haz clic en **Escribir por WhatsApp**. |
+
+**Resultado esperado:** tras verificar, aparece el nombre de la persona de contacto y el teléfono de la bodega. El botón de WhatsApp abre una pestaña nueva hacia `wa.me` con un mensaje ya redactado mencionando la bodega.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+---
+
+## 7. Resumen de resultados
 
 | # | Caso | Cumple | No cumple |
 |---|---|---|---|
@@ -597,10 +689,17 @@ Observaciones: ___________________________________________
 | 5.4 | Traslado entre bodegas | ☐ | ☐ |
 | 5.5 | Alertas de vencimiento y resolución | ☐ | ☐ |
 | 5.6 | Alerta de stock mínimo | ☐ | ☐ |
+| 6.1 | Buscar sin cuenta | ☐ | ☐ |
+| 6.2 | Semáforo según cantidad | ☐ | ☐ |
+| 6.3 | Filtros por categoría y zona | ☐ | ☐ |
+| 6.4 | Mapa de resultados | ☐ | ☐ |
+| 6.5 | Ordenar por cercanía | ☐ | ☐ |
+| 6.6 | Teléfono oculto sin verificación | ☐ | ☐ |
+| 6.7 | Desbloquear contacto y WhatsApp | ☐ | ☐ |
 
-**Total cumple:** ___ / 39
+**Total cumple:** ___ / 46
 
-## 7. Hallazgos (bugs encontrados)
+## 8. Hallazgos (bugs encontrados)
 
 Para cada caso marcado "No cumple", documenta aquí con el mismo número de caso:
 

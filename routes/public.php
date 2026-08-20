@@ -3,7 +3,9 @@
 use App\Http\Controllers\Public\SearchController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('buscar', [SearchController::class, 'index'])->name('public.search');
+// El buscador vive en la home ('/') — se conserva /buscar como alias por si
+// quedó compartido en algún enlace.
+Route::redirect('buscar', '/', 301)->name('public.search');
 
 Route::prefix('api/public')->name('api.public.')->middleware('throttle:60,1')->group(function () {
     Route::get('search', [SearchController::class, 'search'])->name('search');

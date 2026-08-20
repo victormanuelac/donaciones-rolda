@@ -558,14 +558,26 @@ Observaciones: ___________________________________________
 
 Todos los casos de esta sección se hacen **sin iniciar sesión** (ventana de incógnito). Necesitas al menos un insumo con existencias registrado desde el Kardex (usa el Caso 4.2 de este mismo documento para tener datos reales).
 
-### Caso 6.1 — Buscar sin cuenta
+### Caso 6.1 — El buscador es lo primero que se ve al entrar
 
 | Paso | Acción |
 |---|---|
-| 1 | Abre la URL del ambiente en incógnito y haz clic en **Buscar insumos disponibles** (o ve directo a `/buscar`). |
-| 2 | Escribe parte del nombre de un insumo que sepas que tiene existencias (ej. "suero", "arroz"). |
+| 1 | Abre la URL raíz del ambiente en incógnito (ej. `https://tu-dominio/`, sin ninguna ruta adicional). |
+| 2 | Observa qué es lo primero que aparece en pantalla, sin necesidad de hacer scroll. |
+| 3 | Escribe parte del nombre de un insumo que sepas que tiene existencias (ej. "suero", "arroz"). |
 
-**Resultado esperado:** la página carga sin pedir login. A medida que escribes, aparecen tarjetas de resultados con el nombre del insumo, la bodega, la cantidad disponible y un semáforo de color (🟢🟡🔴).
+**Resultado esperado:** la página carga sin pedir login y el buscador (título + campo de búsqueda grande) es lo primero visible, antes que cualquier otro contenido. A medida que escribes, aparecen tarjetas de resultados con el nombre del insumo, la bodega, la cantidad disponible y un semáforo de color (🟢🟡🔴). La ruta vieja `/buscar` debe redirigir automáticamente a `/`.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 6.1B — Vista dividida con información de la aplicación
+
+| Paso | Acción |
+|---|---|
+| 1 | En la misma página, mira a la derecha de los resultados de búsqueda (o debajo, en pantallas angostas de celular). |
+
+**Resultado esperado:** se ve un panel con una descripción breve de qué es Donaciones Rolda, dos cifras (insumos disponibles y centros de acopio activos) y un resumen de "cómo funciona". El mapa de bodegas aparece debajo de ese panel, no reemplaza la información.
 
 `Cumple ☐   No cumple ☐`
 Observaciones: ___________________________________________
@@ -689,7 +701,8 @@ Observaciones: ___________________________________________
 | 5.4 | Traslado entre bodegas | ☐ | ☐ |
 | 5.5 | Alertas de vencimiento y resolución | ☐ | ☐ |
 | 5.6 | Alerta de stock mínimo | ☐ | ☐ |
-| 6.1 | Buscar sin cuenta | ☐ | ☐ |
+| 6.1 | Buscador es lo primero que se ve | ☐ | ☐ |
+| 6.1B | Vista dividida con info de la app | ☐ | ☐ |
 | 6.2 | Semáforo según cantidad | ☐ | ☐ |
 | 6.3 | Filtros por categoría y zona | ☐ | ☐ |
 | 6.4 | Mapa de resultados | ☐ | ☐ |
@@ -697,7 +710,7 @@ Observaciones: ___________________________________________
 | 6.6 | Teléfono oculto sin verificación | ☐ | ☐ |
 | 6.7 | Desbloquear contacto y WhatsApp | ☐ | ☐ |
 
-**Total cumple:** ___ / 46
+**Total cumple:** ___ / 47
 
 ## 8. Hallazgos (bugs encontrados)
 

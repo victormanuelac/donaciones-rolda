@@ -33,8 +33,16 @@ function publicItem(array $overrides = []): MasterItem
     ], ...$overrides]);
 }
 
-test('la pagina de busqueda publica carga sin autenticacion', function () {
-    $this->get('/buscar')->assertOk();
+test('la pagina de busqueda publica carga sin autenticacion en la home', function () {
+    $this->get('/')->assertOk();
+});
+
+test('el buscador es lo primero que se ve en la home', function () {
+    $this->get('/')->assertSeeInOrder(['¿Qué insumo necesitas?', 'Contactar', 'centros de acopio activos']);
+});
+
+test('/buscar redirige a la home', function () {
+    $this->get('/buscar')->assertRedirect('/');
 });
 
 test('un ciudadano no autenticado puede buscar insumos disponibles', function () {

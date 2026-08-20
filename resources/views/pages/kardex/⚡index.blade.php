@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\MasterItem;
 use App\Models\StockEntry;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -34,6 +35,18 @@ new #[Title('Kardex — Inventario')] class extends Component {
             ->get()
             ->filter(fn (StockEntry $entry) => $entry->availableQuantity() > 0 || $entry->status->value !== 'available');
     }
+
+    #[Computed]
+    public function lowStockItems()
+    {
+        $warehouseIds = $this->warehouseFilter ? [$this->warehouseFilter] : $this->warehouses->pluck('id')->all();
+
+        return MasterItem::query()
+            ->whereNotNull('reorder_point')
+            ->whereHas('stockEntries', fn ($query) => $query->whereIn('warehouse_id', $warehouseIds))
+            ->get()
+            ->filter(fn (MasterItem $item) => $item->isBelowReorderPoint($warehouseIds));
+    }
 }; ?>
 
 <section class="w-full">
@@ -42,11 +55,22 @@ new #[Title('Kardex — Inventario')] class extends Component {
             <flux:heading size="xl">{{ __('Kardex — Inventario') }}</flux:heading>
             <flux:subheading>{{ __('Existencias por bodega, lote y fecha de vencimiento.') }}</flux:subheading>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 flex-wrap">
             <flux:button :href="route('kardex.entry')" variant="primary" icon="plus" wire:navigate>{{ __('Registrar entrada') }}</flux:button>
             <flux:button :href="route('kardex.exit')" icon="minus" wire:navigate>{{ __('Registrar salida') }}</flux:button>
+            <flux:button :href="route('kardex.transfer')" icon="arrows-right-left" wire:navigate>{{ __('Trasladar') }}</flux:button>
+            <flux:button :href="route('kardex.expiry-alerts')" icon="exclamation-triangle" wire:navigate>{{ __('Vencimientos') }}</flux:button>
         </div>
     </div>
+
+    @if ($this->lowStockItems->isNotEmpty())
+        <flux:callout variant="warning" icon="exclamation-triangle" class="mb-4">
+            <flux:callout.heading>{{ __('Ítems bajo el punto de reorden') }}</flux:callout.heading>
+            <flux:callout.text>
+                {{ $this->lowStockItems->map(fn ($item) => "{$item->name} ({$item->totalAvailableQuantity($this->warehouseFilter ? [$this->warehouseFilter] : $this->warehouses->pluck('id')->all())} {$item->unit_of_measure})")->implode(' · ') }}
+            </flux:callout.text>
+        </flux:callout>
+    @endif
 
     @if ($this->warehouses->count() > 1)
         <flux:field class="max-w-xs mb-4">

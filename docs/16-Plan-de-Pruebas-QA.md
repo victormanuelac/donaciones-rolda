@@ -1,6 +1,6 @@
 # 🧪 Plan de Pruebas QA — Funcionalidades en construcción
 
-**Alcance de esta versión:** Módulo 2 (Autenticación y Roles), el Formulario de Encuestas — Censo de Hogares (Fase 1 de triaje + registro de integrantes) y Módulo 3 (Kardex/Inventario de centros de acopio, incluido el catálogo administrable de Bodegas / Centros de Acopio). Se actualiza a medida que se agregan módulos nuevos.
+**Alcance de esta versión:** Módulo 2 (Autenticación y Roles), el Formulario de Encuestas — Censo de Hogares (Fase 1 de triaje + registro de integrantes) y Módulo 3 (Kardex/Inventario de centros de acopio, incluido el catálogo administrable de Bodegas / Centros de Acopio, control de vencidos, FEFO, traslados entre bodegas, alertas de vencimiento y de stock mínimo). Se actualiza a medida que se agregan módulos nuevos.
 
 Este documento es para quien haga de **QA**: cada caso trae los pasos exactos a ejecutar y la respuesta que debes esperar. Marca **Cumple** o **No cumple** en cada caso y anota cualquier diferencia en Observaciones — no interpretes, compara el resultado real contra el esperado tal como está escrito.
 
@@ -471,7 +471,90 @@ Observaciones: ___________________________________________
 
 ---
 
-## 5. Resumen de resultados
+## 5. Mejoras del Kardex (vencidos, FEFO, traslados, alertas, stock mínimo)
+
+Usa la cuenta de **Operador** con al menos dos bodegas asignadas para los casos 5.1 a 5.6 (pídele a desarrollo que te asigne una segunda bodega si solo tienes una).
+
+### Caso 5.1 — No se puede despachar un lote vencido
+
+| Paso | Acción |
+|---|---|
+| 1 | Pide a desarrollo que cree un lote con fecha de vencimiento pasada en una de tus bodegas (o espera a que uno de tus lotes venza). |
+| 2 | Ve a **Registrar salida** y revisa el desplegable de lotes. |
+
+**Resultado esperado:** el lote vencido **no aparece** en el desplegable — no hay forma de seleccionarlo para una entrega normal.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 5.2 — El lote sugerido es el que vence primero (FEFO)
+
+| Paso | Acción |
+|---|---|
+| 1 | Con al menos dos lotes disponibles del mismo o distinto ítem, con fechas de vencimiento distintas, ve a **Registrar salida**. |
+| 2 | Observa cuál lote aparece preseleccionado y marcado como "(Sugerido)" al abrir el formulario. |
+
+**Resultado esperado:** el lote preseleccionado es el que tiene la fecha de vencimiento más próxima entre todos los disponibles (o el primero de la lista, si ninguno tiene vencimiento). El desplegable completo está ordenado de más próximo a vencer a menos.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 5.3 — Descartar un lote vencido con motivo de pérdida/daño
+
+| Paso | Acción |
+|---|---|
+| 1 | Ve a **Registrar salida**, selecciona el lote vencido del Caso 5.1 — nota que ya no aparece en el desplegable normal. Pide a desarrollo que confirme que sí se puede registrar vía el motivo **Descarte por vencimiento** (esto valida la regla de negocio, aunque no lo puedas hacer desde el desplegable filtrado). |
+| 2 | Alternativamente: registra una salida sobre un lote **no vencido** usando el motivo **Pérdida** o **Daño** y confirma que se guarda igual que una donación normal. |
+
+**Resultado esperado:** los motivos "Pérdida", "Daño" y "Descarte por vencimiento" están disponibles en el desplegable de motivos y funcionan igual que una salida normal (descuentan del disponible).
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 5.4 — Trasladar stock entre bodegas
+
+| Paso | Acción |
+|---|---|
+| 1 | Desde el Kardex, haz clic en **Trasladar**. |
+| 2 | Selecciona un lote, elige una bodega destino distinta a la de origen, indica una cantidad menor a la disponible y guarda. |
+| 3 | Ve al listado del Kardex y filtra por la bodega destino. |
+
+**Resultado esperado:** aparece un lote nuevo en la bodega destino, con el mismo número de lote y fecha de vencimiento que el original, por la cantidad trasladada. En la bodega de origen, el disponible del lote original bajó exactamente esa cantidad.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 5.5 — Alertas de vencimiento y su resolución
+
+| Paso | Acción |
+|---|---|
+| 1 | Pide a desarrollo que corra `sail artisan kardex:update-stock-entry-statuses` (o espera a la ejecución diaria programada) sobre un lote que vence en los próximos 30 días. |
+| 2 | Ve a **Kardex → Vencimientos**. |
+| 3 | Verifica que el lote aparece con una etiqueta de alerta (30/14/7 días o Vencido). |
+| 4 | Haz clic en **Resolver**, elige "Se descartó" y guarda. |
+| 5 | Verifica en el listado del Kardex que el disponible de ese lote quedó en 0. |
+
+**Resultado esperado:** la alerta aparece correctamente clasificada por cercanía al vencimiento. Al resolverla como "Se descartó", se genera automáticamente una salida y el disponible del lote baja a 0 — no es solo una nota, mueve el inventario de verdad.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 5.6 — Alerta de stock mínimo
+
+| Paso | Acción |
+|---|---|
+| 1 | Pide a desarrollo que configure un `reorder_point` en un ítem del catálogo (hoy no tiene pantalla propia, se hace por `tinker`). |
+| 2 | Asegúrate de que el disponible total de ese ítem en tus bodegas esté por debajo de ese número (registra salidas si hace falta). |
+| 3 | Ve al listado del Kardex. |
+
+**Resultado esperado:** aparece un aviso amarillo en la parte superior ("Ítems bajo el punto de reorden") listando ese ítem con su cantidad disponible actual.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+---
+
+## 6. Resumen de resultados
 
 | # | Caso | Cumple | No cumple |
 |---|---|---|---|
@@ -508,10 +591,16 @@ Observaciones: ___________________________________________
 | 4.11 | Validación de campos obligatorios | ☐ | ☐ |
 | 4.12 | Editar bodega existente | ☐ | ☐ |
 | 4.13 | Desactivar bodega y efecto en Kardex | ☐ | ☐ |
+| 5.1 | No se despacha un lote vencido | ☐ | ☐ |
+| 5.2 | Lote sugerido es FEFO | ☐ | ☐ |
+| 5.3 | Descarte con motivo pérdida/daño | ☐ | ☐ |
+| 5.4 | Traslado entre bodegas | ☐ | ☐ |
+| 5.5 | Alertas de vencimiento y resolución | ☐ | ☐ |
+| 5.6 | Alerta de stock mínimo | ☐ | ☐ |
 
-**Total cumple:** ___ / 33
+**Total cumple:** ___ / 39
 
-## 6. Hallazgos (bugs encontrados)
+## 7. Hallazgos (bugs encontrados)
 
 Para cada caso marcado "No cumple", documenta aquí con el mismo número de caso:
 

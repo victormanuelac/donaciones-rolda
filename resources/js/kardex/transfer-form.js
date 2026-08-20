@@ -1,6 +1,6 @@
 import { enqueue } from '../offline/queue.js';
 
-const SYNC_ENDPOINT = '/kardex/salidas/sync';
+const SYNC_ENDPOINT = '/kardex/traslados/sync';
 
 function emptyState() {
     return {
@@ -8,23 +8,19 @@ function emptyState() {
         submitted: false,
         queuedOffline: false,
         errorMessage: '',
-        warehouse_id: '',
+        source_warehouse_id: '',
         stock_entry_id: '',
-        quantity_released: 1,
-        exit_reason: '',
-        received_by_name: '',
-        destination_description: '',
+        destination_warehouse_id: '',
+        quantity: 1,
         notes: '',
     };
 }
 
 /**
- * @param {Record<string, number>} warehouseByStockEntry Mapa id de stock_entry -> id de bodega,
- *   para completar warehouse_id automáticamente al elegir el lote a despachar.
- * @param {Array<number>} fefoOrderedStockEntryIds Ids de lotes disponibles en orden FEFO
- *   (vencimiento más próximo primero), para preseleccionar el sugerido por defecto.
+ * @param {Record<string, number>} warehouseByStockEntry Mapa id de stock_entry -> id de bodega de origen.
+ * @param {Array<number>} fefoOrderedStockEntryIds Ids de lotes disponibles en orden FEFO.
  */
-export default function stockExitForm(warehouseByStockEntry, fefoOrderedStockEntryIds) {
+export default function stockTransferForm(warehouseByStockEntry, fefoOrderedStockEntryIds) {
     return {
         ...emptyState(),
         warehouseByStockEntry,
@@ -37,18 +33,16 @@ export default function stockExitForm(warehouseByStockEntry, fefoOrderedStockEnt
         },
 
         onStockEntryChange() {
-            this.warehouse_id = this.warehouseByStockEntry[this.stock_entry_id] ?? '';
+            this.source_warehouse_id = this.warehouseByStockEntry[this.stock_entry_id] ?? '';
         },
 
         buildPayload() {
             return {
                 client_uuid: crypto.randomUUID(),
-                warehouse_id: this.warehouse_id,
                 stock_entry_id: this.stock_entry_id,
-                quantity_released: this.quantity_released,
-                exit_reason: this.exit_reason,
-                received_by_name: this.received_by_name || null,
-                destination_description: this.destination_description || null,
+                source_warehouse_id: this.source_warehouse_id,
+                destination_warehouse_id: this.destination_warehouse_id,
+                quantity: this.quantity,
                 notes: this.notes || null,
             };
         },
@@ -77,7 +71,7 @@ export default function stockExitForm(warehouseByStockEntry, fefoOrderedStockEnt
                     if (results[0]?.status === 'ok') {
                         this.submitted = true;
                     } else {
-                        this.errorMessage = results[0]?.message ?? 'No se pudo guardar la salida.';
+                        this.errorMessage = results[0]?.message ?? 'No se pudo guardar el traslado.';
                     }
                 } else if (response.status === 422) {
                     const body = await response.json();

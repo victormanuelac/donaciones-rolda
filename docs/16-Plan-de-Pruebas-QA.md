@@ -25,10 +25,11 @@ Usa el ambiente de pruebas en EC2 (ver `README.md`, sección 5) si ya está desp
 | Cuenta | Cómo obtenerla |
 |---|---|
 | Admin | `admin@donaciones-rolda.test` / `AdminRolda#2026` (seed de `DatabaseSeeder`, ver `README.md` sección 3). Solo existe si el ambiente corrió `sail artisan migrate:fresh --seed`. |
-| Operador | Regístrala tú mismo en el Caso 2.1 y apruébala como admin en el Caso 2.3 — no viene precargada. |
-| Donante (o cualquier rol sin acceso de campo) | Regístrala igual que la de operador; apruébala como admin asignándole el rol **Donante**. Se usa para confirmar que el RBAC bloquea correctamente. |
+| Operador (con bodegas ya asignadas) | `operador@donaciones-rolda.test` / `OperadorRolda#2026` (seed de `KardexDemoSeeder`, ver `README.md`). Ya viene asignado a Bodega Centro y Bodega Guayabal — úsala para todos los casos de Kardex (sección 4 y 5) sin necesidad de pedirle nada a desarrollo. |
+| Operador nuevo, sin bodega asignada (para el Caso 4.3) | Regístrala tú mismo en el Caso 2.1 y apruébala como admin en el Caso 2.3. |
+| Donante (o cualquier rol sin acceso de campo) | Regístrala igual que la de operador nuevo; apruébala como admin asignándole el rol **Donante**. Se usa para confirmar que el RBAC bloquea correctamente. |
 
-**Para los casos de Kardex (sección 4):** el operador solo puede registrar entradas/salidas en las bodegas que tiene asignadas — hoy esa asignación no tiene pantalla propia, así que pídele a alguien de desarrollo que la cree por ti (`WarehouseAssignment::create(['user_id' => ..., 'warehouse_id' => ...])` vía `sail artisan tinker`, o revisa si ya corrió el seed de bodegas de ejemplo `KardexDemoSeeder` — "Bodega Centro" y "Bodega Guayabal"). Un Admin o Coordinador no necesita esta asignación: opera cualquier bodega activa.
+**Datos de ejemplo ya sembrados para el Kardex:** el seed también deja existencias en las dos bodegas (con los tres niveles de semáforo), un lote agotado, dos lotes por vencer en pocos días (para el Caso 5.5) y dos ítems bajo su punto de reorden (Caso 5.6/4.13) — no necesitas crear nada a mano para empezar a probar. Un Admin o Coordinador no necesita asignación de bodega: opera cualquier bodega activa.
 
 ### 1.3 Cómo marcar cada caso
 
@@ -528,8 +529,8 @@ Observaciones: ___________________________________________
 
 | Paso | Acción |
 |---|---|
-| 1 | Pide a desarrollo que corra `sail artisan kardex:update-stock-entry-statuses` (o espera a la ejecución diaria programada) sobre un lote que vence en los próximos 30 días. |
-| 2 | Ve a **Kardex → Vencimientos**. |
+| 1 | Con la cuenta de operador de prueba (el seed ya corrió este comando sobre los lotes de ejemplo que vencen pronto), ve a **Kardex → Vencimientos**. |
+| 2 | Si quieres provocar una alerta nueva tú mismo: pide a desarrollo que corra `sail artisan kardex:update-stock-entry-statuses` (o espera a la ejecución diaria programada) después de registrar un lote con vencimiento próximo. |
 | 3 | Verifica que el lote aparece con una etiqueta de alerta (30/14/7 días o Vencido). |
 | 4 | Haz clic en **Resolver**, elige "Se descartó" y guarda. |
 | 5 | Verifica en el listado del Kardex que el disponible de ese lote quedó en 0. |
@@ -543,11 +544,9 @@ Observaciones: ___________________________________________
 
 | Paso | Acción |
 |---|---|
-| 1 | Pide a desarrollo que configure un `reorder_point` en un ítem del catálogo (hoy no tiene pantalla propia, se hace por `tinker`). |
-| 2 | Asegúrate de que el disponible total de ese ítem en tus bodegas esté por debajo de ese número (registra salidas si hace falta). |
-| 3 | Ve al listado del Kardex. |
+| 1 | Con la cuenta de operador de prueba (que ya tiene datos sembrados), ve al listado del Kardex sin aplicar ningún filtro de bodega. |
 
-**Resultado esperado:** aparece un aviso amarillo en la parte superior ("Ítems bajo el punto de reorden") listando ese ítem con su cantidad disponible actual.
+**Resultado esperado:** aparece un aviso amarillo en la parte superior ("Ítems bajo el punto de reorden") listando **Leche en polvo** y **Guantes de nitrilo** (datos ya sembrados por `KardexDemoSeeder`) con su cantidad disponible actual.
 
 `Cumple ☐   No cumple ☐`
 Observaciones: ___________________________________________

@@ -1,5 +1,7 @@
-import { queueCensusEntry } from './offline-db.js';
-import { flushCensusQueue } from './sync.js';
+import { enqueue } from '../offline/queue.js';
+import { flushQueue } from '../offline/sync.js';
+
+const SYNC_ENDPOINT = '/censo/sync';
 
 const TOTAL_STEPS = 6;
 
@@ -178,7 +180,7 @@ export default function censusWizard() {
             const payload = this.buildPayload();
 
             try {
-                const response = await fetch('/censo/sync', {
+                const response = await fetch(SYNC_ENDPOINT, {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: {
@@ -212,7 +214,7 @@ export default function censusWizard() {
         },
 
         async queueOffline(clientUuid, payload) {
-            await queueCensusEntry(clientUuid, payload);
+            await enqueue(SYNC_ENDPOINT, clientUuid, payload);
             this.queuedOffline = true;
             this.submitted = true;
         },
@@ -222,7 +224,7 @@ export default function censusWizard() {
         },
 
         async syncNow() {
-            return flushCensusQueue();
+            return flushQueue();
         },
     };
 }

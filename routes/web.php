@@ -15,3 +15,4 @@ Route::middleware(['auth'])->group(function () {
 require __DIR__.'/settings.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/census.php';
+require __DIR__.'/kardex.php';

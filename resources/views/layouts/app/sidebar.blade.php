@@ -21,6 +21,12 @@
                             {{ __('Censo de hogares') }}
                         </flux:sidebar.item>
                     @endif
+
+                    @if (auth()->user()?->canManageStock())
+                        <flux:sidebar.item icon="archive-box" :href="route('kardex.index')" :current="request()->routeIs('kardex.*')" wire:navigate>
+                            {{ __('Kardex') }}
+                        </flux:sidebar.item>
+                    @endif
                 </flux:sidebar.group>
 
                 @if (auth()->user()?->isAdmin())

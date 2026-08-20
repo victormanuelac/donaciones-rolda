@@ -35,13 +35,14 @@
         </header>
 
         <main class="relative z-10 max-w-6xl mx-auto px-6 py-10" x-data="publicSearch()">
-            <div class="mb-8">
-                <h1 class="font-display text-3xl font-extrabold tracking-tight text-ink mb-2">{{ __('Buscar insumos disponibles') }}</h1>
-                <p class="text-muted">{{ __('Encuentra medicinas, alimentos, insumos médicos y herramientas disponibles en los centros de acopio de Roldanillo.') }}</p>
+            {{-- El buscador es lo primero que se ve: título breve + input grande antes que cualquier otra cosa. --}}
+            <div class="mb-6">
+                <h1 class="font-display text-3xl md:text-4xl font-extrabold tracking-tight text-ink mb-2">{{ __('¿Qué insumo necesitas?') }}</h1>
+                <p class="text-muted">{{ __('Busca medicinas, alimentos, insumos médicos y herramientas disponibles ahora mismo en los centros de acopio de Roldanillo.') }}</p>
             </div>
 
-            <div class="card-brutal p-4 md:p-6 mb-6 space-y-4">
-                <flux:input x-model="query" x-on:input="debouncedSearch()" :placeholder="__('¿Qué insumo buscas? Ej. antibiótico, arroz, gasas...')" icon="magnifying-glass" />
+            <div class="card-brutal p-4 md:p-6 mb-8 space-y-4">
+                <flux:input x-model="query" x-on:input="debouncedSearch()" :placeholder="__('Ej. antibiótico, arroz, gasas...')" icon="magnifying-glass" class="text-lg" autofocus />
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <flux:select x-model="categoryId" x-on:change="runSearch()">
@@ -70,6 +71,7 @@
                 </div>
             </div>
 
+            {{-- Vista dividida: resultados a la izquierda, información de la aplicación + mapa a la derecha. --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 space-y-4">
                     <p x-show="loading" x-cloak class="text-muted text-sm">{{ __('Buscando...') }}</p>
@@ -101,9 +103,41 @@
                     </template>
                 </div>
 
-                <div class="lg:col-span-1">
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="card-brutal p-5">
+                        <h2 class="font-display font-bold text-ink mb-2">{{ __('¿Qué es Donaciones Rolda?') }}</h2>
+                        <p class="text-sm text-muted leading-relaxed mb-4">
+                            {{ __('Plataforma comunitaria para rastrear y coordinar la disponibilidad de medicinas, alimentos, insumos médicos y herramientas durante la emergencia en Roldanillo.') }}
+                        </p>
+
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div class="rounded-lg bg-surface-2 border border-line p-3 text-center">
+                                <p class="font-display text-2xl font-extrabold text-primary">{{ $availableItemsCount }}</p>
+                                <p class="text-xs text-muted">{{ __('insumos disponibles') }}</p>
+                            </div>
+                            <div class="rounded-lg bg-surface-2 border border-line p-3 text-center">
+                                <p class="font-display text-2xl font-extrabold text-primary">{{ $activeWarehousesCount }}</p>
+                                <p class="text-xs text-muted">{{ __('centros de acopio activos') }}</p>
+                            </div>
+                        </div>
+
+                        <h3 class="font-display font-bold text-sm text-ink mb-2">{{ __('¿Cómo funciona?') }}</h3>
+                        <ol class="text-sm text-muted space-y-1 list-decimal list-inside">
+                            <li>{{ __('Busca el insumo que necesitas.') }}</li>
+                            <li>{{ __('Verifica que eres una persona real.') }}</li>
+                            <li>{{ __('Contacta al centro de acopio por WhatsApp.') }}</li>
+                        </ol>
+
+                        <flux:separator class="my-4" />
+
+                        <p class="text-xs text-muted">
+                            {{ __('¿Eres voluntario, ONG o entidad de gobierno? ') }}
+                            <flux:link :href="route('login')" wire:navigate>{{ __('Inicia sesión para colaborar') }}</flux:link>
+                        </p>
+                    </div>
+
                     <div class="card-brutal p-2 sticky top-4" x-data="publicResultsMap()">
-                        <div x-ref="mapContainer" class="h-96 rounded-lg"></div>
+                        <div x-ref="mapContainer" class="h-80 rounded-lg"></div>
                     </div>
                 </div>
             </div>

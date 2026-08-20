@@ -27,6 +27,8 @@ class SearchController extends Controller
         return view('pages.public.search', [
             'categories' => Category::where('is_active', true)->orderBy('sort_order')->get(['id', 'name']),
             'zones' => GeographicZone::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'activeWarehousesCount' => Warehouse::where('is_active', true)->count(),
+            'availableItemsCount' => StockEntry::where('status', 'available')->distinct('master_item_id')->count('master_item_id'),
         ]);
     }
 

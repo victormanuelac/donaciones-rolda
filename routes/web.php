@@ -1,8 +1,9 @@
 <?php
 
+use App\Http\Controllers\Public\SearchController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+Route::get('/', [SearchController::class, 'index'])->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');

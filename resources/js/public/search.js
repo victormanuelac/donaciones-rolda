@@ -25,7 +25,8 @@ export default function publicSearch() {
         turnstileToken: '',
 
         init() {
-            this.runSearch();
+            // A propósito no se busca nada al cargar: la lista de insumos solo debe
+            // aparecer después de que la persona busque o aplique un filtro.
         },
 
         debouncedSearch() {

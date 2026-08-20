@@ -74,6 +74,10 @@
             {{-- Vista dividida: resultados a la izquierda, información de la aplicación + mapa a la derecha. --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 space-y-4">
+                    <p x-show="!searched && !loading" class="text-muted text-sm">
+                        {{ __('Escribe qué necesitas o elige una categoría/zona arriba para ver los insumos disponibles.') }}
+                    </p>
+
                     <p x-show="loading" x-cloak class="text-muted text-sm">{{ __('Buscando...') }}</p>
 
                     <p x-show="searched && !loading && results.length === 0" x-cloak class="text-muted text-sm">

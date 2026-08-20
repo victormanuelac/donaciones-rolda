@@ -41,6 +41,23 @@ test('el buscador es lo primero que se ve en la home', function () {
     $this->get('/')->assertSeeInOrder(['¿Qué insumo necesitas?', 'Contactar', 'centros de acopio activos']);
 });
 
+test('la lista de insumos no se muestra hasta que la persona busque', function () {
+    $warehouse = publicWarehouse();
+    $item = publicItem();
+    $operator = User::factory()->create();
+
+    StockEntry::create([
+        'master_item_id' => $item->id,
+        'warehouse_id' => $warehouse->id,
+        'registered_by_user_id' => $operator->id,
+        'quantity' => 30,
+    ]);
+
+    $response = $this->get('/');
+
+    $response->assertSee('Escribe qué necesitas o elige una categoría/zona arriba para ver los insumos disponibles.');
+});
+
 test('/buscar redirige a la home', function () {
     $this->get('/buscar')->assertRedirect('/');
 });

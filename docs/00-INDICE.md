@@ -62,6 +62,10 @@ El desglose de esfuerzo por módulo y equipo más granular sigue siendo el de `0
 
 - [`08-Matriz-Compliance-Privacy-LSPP.md`](08-Matriz-Compliance-Privacy-LSPP.md) — cumplimiento Ley 1581/2012 (Colombia), retención de datos, derechos del titular, protocolo de brechas
 
+## 5B. Pruebas QA
+
+- [`16-Plan-de-Pruebas-QA.md`](16-Plan-de-Pruebas-QA.md) — guía paso a paso para QA: casos de prueba manuales con resultado esperado y checklist de cumple/no cumple, por módulo ya construido (hoy: Módulo 2 y Formulario de Encuestas). Se amplía a medida que se agregan módulos.
+
 ## 6. Roadmap de desarrollo (vive en Notion, no aquí)
 
 El desglose por **módulos, funciones y características**, con checklist de cada uno y asignación de equipos (Backend/Frontend/DevOps/QA/Seguridad), se gestiona en la base de datos **Product Roadmap** + **Engineering Tasks** del workspace de Notion "Kit de desarrollo de productos de software". Este repositorio es la fuente de las decisiones de diseño y negocio; Notion es la fuente de verdad operativa del día a día.

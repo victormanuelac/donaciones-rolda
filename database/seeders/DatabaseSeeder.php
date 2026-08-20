@@ -24,5 +24,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@donaciones-rolda.test',
             'password' => Hash::make('AdminRolda#2026'),
         ]);
+
+        $this->call(GeographicZoneSeeder::class);
+        $this->call(KardexDemoSeeder::class);
     }
 }

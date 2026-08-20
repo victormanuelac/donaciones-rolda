@@ -8,7 +8,9 @@ use App\Enums\UserStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -69,5 +71,42 @@ class User extends Authenticatable implements PasskeyUser
     public function isAdmin(): bool
     {
         return $this->role === UserRole::Admin;
+    }
+
+    public function canSurveyCensus(): bool
+    {
+        return in_array($this->role, [UserRole::Operator, UserRole::Coordinator, UserRole::Admin], true);
+    }
+
+    public function canManageStock(): bool
+    {
+        return in_array($this->role, [UserRole::Operator, UserRole::Coordinator, UserRole::Admin], true);
+    }
+
+    /**
+     * @return HasMany<WarehouseAssignment, $this>
+     */
+    public function warehouseAssignments(): HasMany
+    {
+        return $this->hasMany(WarehouseAssignment::class);
+    }
+
+    /**
+     * Bodegas donde puede registrar entradas/salidas. Admin y coordinador operan
+     * cualquier bodega activa; el operador solo las que tiene asignadas.
+     *
+     * @return Collection<int, Warehouse>
+     */
+    public function assignableWarehouses(): Collection
+    {
+        if (in_array($this->role, [UserRole::Admin, UserRole::Coordinator], true)) {
+            return Warehouse::query()->where('is_active', true)->orderBy('name')->get();
+        }
+
+        return Warehouse::query()
+            ->whereHas('assignments', fn ($query) => $query->where('user_id', $this->id)->where('is_active', true))
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
     }
 }

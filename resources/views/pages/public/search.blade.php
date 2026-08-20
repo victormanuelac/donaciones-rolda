@@ -34,7 +34,7 @@
             </nav>
         </header>
 
-        <main class="relative z-10 max-w-6xl mx-auto px-6 py-10" x-data="publicSearch()">
+        <main class="relative z-10 max-w-6xl mx-auto px-6 py-10" x-data="publicSearch(@js($zones))">
             {{-- El buscador es lo primero que se ve: título breve + input grande antes que cualquier otra cosa. --}}
             <div class="mb-6">
                 <h1 class="font-display text-3xl md:text-4xl font-extrabold tracking-tight text-ink mb-2">{{ __('¿Qué insumo necesitas?') }}</h1>
@@ -65,7 +65,7 @@
                             <span x-show="locating" x-cloak>{{ __('Ubicando...') }}</span>
                         </flux:button>
                         <flux:button x-show="userLocation" x-cloak x-on:click="clearLocation()" icon="x-mark" class="w-full">
-                            {{ __('Quitar ubicación') }}
+                            <span x-text="locationLabel"></span>
                         </flux:button>
                     </div>
                 </div>

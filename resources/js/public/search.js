@@ -1,11 +1,25 @@
 let debounceTimer = null;
 
+const EARTH_RADIUS_KM = 6371;
+
+function haversineKm(lat1, lng1, lat2, lng2) {
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+
+    return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 /**
  * Las opciones de categoría/zona se renderizan en el servidor (Blade), este
  * componente solo maneja el estado de los filtros y los resultados.
  */
-export default function publicSearch() {
+export default function publicSearch(zones = []) {
     return {
+        zones,
         query: '',
         categoryId: '',
         zoneId: '',
@@ -13,6 +27,7 @@ export default function publicSearch() {
         loading: false,
         searched: false,
         userLocation: null,
+        locationLabel: '',
         locating: false,
 
         // Modal de contacto
@@ -44,6 +59,7 @@ export default function publicSearch() {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     this.userLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+                    this.locationLabel = this.nearestZoneLabel(this.userLocation);
                     this.locating = false;
                     this.runSearch();
                 },
@@ -54,8 +70,25 @@ export default function publicSearch() {
             );
         },
 
+        nearestZoneLabel(location) {
+            const zonesWithCoords = this.zones.filter((zone) => zone.latitude !== null && zone.longitude !== null);
+
+            if (zonesWithCoords.length === 0) {
+                return 'Tu ubicación';
+            }
+
+            const nearest = zonesWithCoords.reduce((closest, zone) => {
+                const distance = haversineKm(location.lat, location.lng, Number(zone.latitude), Number(zone.longitude));
+
+                return !closest || distance < closest.distance ? { zone, distance } : closest;
+            }, null);
+
+            return nearest.zone.name;
+        },
+
         clearLocation() {
             this.userLocation = null;
+            this.locationLabel = '';
             this.runSearch();
         },
 

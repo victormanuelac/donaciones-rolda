@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Actions\Kardex\RegisterStockEntryAction;
 use App\Actions\Kardex\RegisterStockExitAction;
+use App\Actions\Kardex\TransferStockAction;
 use App\Exceptions\ExpiredStockException;
 use App\Exceptions\InsufficientStockException;
 use App\Http\Requests\Kardex\StoreStockEntryBatchRequest;
 use App\Http\Requests\Kardex\StoreStockExitBatchRequest;
+use App\Http\Requests\Kardex\StoreStockTransferBatchRequest;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
+use InvalidArgumentException;
 use Throwable;
 
 /**
@@ -70,6 +73,35 @@ class KardexSyncController extends Controller
                     'client_uuid' => $entry['client_uuid'],
                     'status' => 'error',
                     'message' => 'No se pudo guardar esta salida. Se reintentará en la próxima sincronización.',
+                ];
+            }
+        }
+
+        return response()->json(['results' => $results]);
+    }
+
+    public function transfers(StoreStockTransferBatchRequest $request, TransferStockAction $action): JsonResponse
+    {
+        $results = [];
+
+        foreach ($request->validated('entries') as $entry) {
+            try {
+                $stockEntry = $action->handle($entry, $request->user());
+
+                $results[] = [
+                    'client_uuid' => $entry['client_uuid'],
+                    'status' => 'ok',
+                    'stock_entry_id' => $stockEntry->id,
+                ];
+            } catch (AuthorizationException|InsufficientStockException|ExpiredStockException|InvalidArgumentException $e) {
+                $results[] = ['client_uuid' => $entry['client_uuid'], 'status' => 'error', 'message' => $e->getMessage()];
+            } catch (Throwable $e) {
+                report($e);
+
+                $results[] = [
+                    'client_uuid' => $entry['client_uuid'],
+                    'status' => 'error',
+                    'message' => 'No se pudo guardar este traslado. Se reintentará en la próxima sincronización.',
                 ];
             }
         }

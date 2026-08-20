@@ -208,6 +208,34 @@ test('una salida rechaza un lote vencido', function () {
     expect(StockExit::count())->toBe(0);
 });
 
+test('un lote vencido sí se puede dar de baja con un motivo de descarte', function () {
+    $warehouse = makeWarehouse();
+    $item = makeMasterItem();
+    $operator = operatorAssignedTo($warehouse);
+
+    $entry = StockEntry::create([
+        'master_item_id' => $item->id,
+        'warehouse_id' => $warehouse->id,
+        'registered_by_user_id' => $operator->id,
+        'quantity' => 20,
+        'expiry_date' => now()->subDay()->toDateString(),
+    ]);
+
+    $response = $this->actingAs($operator)->postJson('/kardex/salidas/sync', [
+        'entries' => [[
+            'client_uuid' => (string) Str::uuid(),
+            'stock_entry_id' => $entry->id,
+            'warehouse_id' => $warehouse->id,
+            'quantity_released' => 20,
+            'exit_reason' => 'expired_discard',
+        ]],
+    ]);
+
+    $response->assertOk();
+    $response->assertJsonPath('results.0.status', 'ok');
+    expect($entry->fresh()->availableQuantity())->toBe(0);
+});
+
 test('un lote vencido no aparece en el desplegable del formulario de salida', function () {
     $warehouse = makeWarehouse();
     $item = makeMasterItem();

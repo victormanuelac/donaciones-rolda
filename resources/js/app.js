@@ -3,6 +3,7 @@ import censusWizard from './census/wizard.js';
 import { initFallbackMap } from './census/map.js';
 import stockEntryForm from './kardex/entry-form.js';
 import stockExitForm from './kardex/exit-form.js';
+import stockTransferForm from './kardex/transfer-form.js';
 import { watchConnectivity } from './offline/sync.js';
 
 document.addEventListener('alpine:init', () => {
@@ -14,6 +15,7 @@ document.addEventListener('alpine:init', () => {
     }));
     window.Alpine.data('stockEntryForm', stockEntryForm);
     window.Alpine.data('stockExitForm', stockExitForm);
+    window.Alpine.data('stockTransferForm', stockTransferForm);
 });
 
 if ('serviceWorker' in navigator) {

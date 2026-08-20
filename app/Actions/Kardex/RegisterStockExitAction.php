@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Kardex;
 
+use App\Enums\StockExitReason;
 use App\Exceptions\ExpiredStockException;
 use App\Exceptions\InsufficientStockException;
 use App\Models\StockEntry;
@@ -39,7 +40,9 @@ class RegisterStockExitAction
 
             $entry = StockEntry::lockForUpdate()->findOrFail($payload['stock_entry_id']);
 
-            if ($entry->expiry_date !== null && $entry->expiry_date->isPast()) {
+            $reason = StockExitReason::from($payload['exit_reason']);
+
+            if ($entry->expiry_date !== null && $entry->expiry_date->isPast() && ! $reason->isWriteOff()) {
                 throw new ExpiredStockException;
             }
 

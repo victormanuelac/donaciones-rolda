@@ -23,10 +23,12 @@ use Illuminate\Support\Carbon;
  * @property string|null $notes
  * @property string|null $photo_path
  * @property string|null $client_uuid
+ * @property int|null $transferred_from_stock_entry_id
  */
 #[Fillable([
     'master_item_id', 'warehouse_id', 'registered_by_user_id', 'confirmed_by_user_id',
     'quantity', 'lot_number', 'expiry_date', 'received_date', 'status', 'notes', 'photo_path', 'client_uuid',
+    'transferred_from_stock_entry_id',
 ])]
 class StockEntry extends Model
 {
@@ -61,6 +63,22 @@ class StockEntry extends Model
     public function exits(): HasMany
     {
         return $this->hasMany(StockExit::class);
+    }
+
+    /**
+     * @return HasMany<ExpiryAlert, $this>
+     */
+    public function expiryAlerts(): HasMany
+    {
+        return $this->hasMany(ExpiryAlert::class);
+    }
+
+    /**
+     * @return BelongsTo<StockEntry, $this>
+     */
+    public function transferredFrom(): BelongsTo
+    {
+        return $this->belongsTo(StockEntry::class, 'transferred_from_stock_entry_id');
     }
 
     /**

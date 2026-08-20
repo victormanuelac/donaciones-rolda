@@ -179,6 +179,54 @@ test('una salida rechaza cantidades mayores al stock disponible', function () {
     expect(StockExit::count())->toBe(0);
 });
 
+test('una salida rechaza un lote vencido', function () {
+    $warehouse = makeWarehouse();
+    $item = makeMasterItem();
+    $operator = operatorAssignedTo($warehouse);
+
+    $entry = StockEntry::create([
+        'master_item_id' => $item->id,
+        'warehouse_id' => $warehouse->id,
+        'registered_by_user_id' => $operator->id,
+        'quantity' => 20,
+        'expiry_date' => now()->subDay()->toDateString(),
+    ]);
+
+    $response = $this->actingAs($operator)->postJson('/kardex/salidas/sync', [
+        'entries' => [[
+            'client_uuid' => (string) Str::uuid(),
+            'stock_entry_id' => $entry->id,
+            'warehouse_id' => $warehouse->id,
+            'quantity_released' => 5,
+            'exit_reason' => 'donation',
+        ]],
+    ]);
+
+    $response->assertOk();
+    $response->assertJsonPath('results.0.status', 'error');
+    $response->assertJsonPath('results.0.message', 'Este lote está vencido y no puede despacharse.');
+    expect(StockExit::count())->toBe(0);
+});
+
+test('un lote vencido no aparece en el desplegable del formulario de salida', function () {
+    $warehouse = makeWarehouse();
+    $item = makeMasterItem();
+    $operator = operatorAssignedTo($warehouse);
+
+    StockEntry::create([
+        'master_item_id' => $item->id,
+        'warehouse_id' => $warehouse->id,
+        'registered_by_user_id' => $operator->id,
+        'quantity' => 20,
+        'expiry_date' => now()->subDay()->toDateString(),
+    ]);
+
+    $response = $this->actingAs($operator)->get('/kardex/salida');
+
+    $response->assertOk();
+    $response->assertSee('No hay lotes con existencias disponibles');
+});
+
 test('reenviar el mismo client_uuid no duplica la salida', function () {
     $warehouse = makeWarehouse();
     $item = makeMasterItem();

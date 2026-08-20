@@ -20,7 +20,8 @@ new #[Title('Registrar salida — Kardex')] class extends Component {
             ->with(['masterItem', 'warehouse'])
             ->where('status', 'available')
             ->whereIn('warehouse_id', $this->warehouses->pluck('id'))
-            ->latest()
+            ->where(fn ($query) => $query->whereNull('expiry_date')->orWhere('expiry_date', '>=', today()))
+            ->orderBy('expiry_date')
             ->get()
             ->filter(fn (StockEntry $entry) => $entry->availableQuantity() > 0);
     }

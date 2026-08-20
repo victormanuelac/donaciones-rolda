@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Kardex\RegisterStockEntryAction;
 use App\Actions\Kardex\RegisterStockExitAction;
+use App\Exceptions\ExpiredStockException;
 use App\Exceptions\InsufficientStockException;
 use App\Http\Requests\Kardex\StoreStockEntryBatchRequest;
 use App\Http\Requests\Kardex\StoreStockExitBatchRequest;
@@ -60,7 +61,7 @@ class KardexSyncController extends Controller
                     'status' => 'ok',
                     'stock_exit_id' => $stockExit->id,
                 ];
-            } catch (AuthorizationException|InsufficientStockException $e) {
+            } catch (AuthorizationException|InsufficientStockException|ExpiredStockException $e) {
                 $results[] = ['client_uuid' => $entry['client_uuid'], 'status' => 'error', 'message' => $e->getMessage()];
             } catch (Throwable $e) {
                 report($e);

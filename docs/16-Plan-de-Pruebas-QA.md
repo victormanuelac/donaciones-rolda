@@ -1,6 +1,6 @@
 # 🧪 Plan de Pruebas QA — Funcionalidades en construcción
 
-**Alcance de esta versión:** Módulo 2 (Autenticación y Roles), el Formulario de Encuestas — Censo de Hogares (Fase 1 de triaje + registro de integrantes) y Módulo 3 (Kardex/Inventario de centros de acopio). Se actualiza a medida que se agregan módulos nuevos.
+**Alcance de esta versión:** Módulo 2 (Autenticación y Roles), el Formulario de Encuestas — Censo de Hogares (Fase 1 de triaje + registro de integrantes) y Módulo 3 (Kardex/Inventario de centros de acopio, incluido el catálogo administrable de Bodegas / Centros de Acopio). Se actualiza a medida que se agregan módulos nuevos.
 
 Este documento es para quien haga de **QA**: cada caso trae los pasos exactos a ejecutar y la respuesta que debes esperar. Marca **Cumple** o **No cumple** en cada caso y anota cualquier diferencia en Observaciones — no interpretes, compara el resultado real contra el esperado tal como está escrito.
 
@@ -408,6 +408,67 @@ Observaciones: ___________________________________________
 `Cumple ☐   No cumple ☐`
 Observaciones: ___________________________________________
 
+### Caso 4.9 — Acceso al catálogo de bodegas según el rol
+
+| Paso | Acción |
+|---|---|
+| 1 | Con la cuenta de Admin, verifica que **Bodegas / Centros de Acopio** aparece en el menú (grupo Administración) y que al hacer clic carga el listado (`/admin/bodegas`). |
+| 2 | Cierra sesión, entra con la cuenta de Operador o Coordinador y verifica que esa opción **no** aparece en el menú, y que escribir `/admin/bodegas` a mano da error de acceso denegado. |
+
+**Resultado esperado:** solo Admin ve la opción y puede entrar; cualquier otro rol (incluido Coordinador, que sí puede operar stock pero no administrar el catálogo) recibe acceso denegado.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 4.10 — Crear una bodega / centro de acopio
+
+| Paso | Acción |
+|---|---|
+| 1 | Desde el listado, haz clic en **Nueva bodega**. |
+| 2 | Completa nombre, dirección, persona de contacto y teléfono. Deja el resto opcional en blanco. Haz clic en **Guardar**. |
+
+**Resultado esperado:** el modal se cierra, aparece un mensaje de confirmación, y la bodega nueva aparece en el listado con estado **Activa**.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 4.11 — Validación de campos obligatorios
+
+| Paso | Acción |
+|---|---|
+| 1 | Haz clic en **Nueva bodega**, deja el nombre vacío y haz clic en **Guardar**. |
+
+**Resultado esperado:** el formulario muestra errores de validación bajo los campos obligatorios vacíos (nombre, dirección, persona de contacto, teléfono) y no se crea ninguna bodega.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 4.12 — Editar una bodega existente
+
+| Paso | Acción |
+|---|---|
+| 1 | En el listado, haz clic en **Editar** sobre cualquier bodega. |
+| 2 | Verifica que el formulario carga con los datos actuales (incluido el teléfono, que se guarda encriptado en la base de datos pero debe verse en texto plano aquí). |
+| 3 | Cambia el nombre y haz clic en **Guardar**. |
+
+**Resultado esperado:** el formulario precarga correctamente todos los campos, incluido el teléfono. Tras guardar, el listado refleja el nombre nuevo.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 4.13 — Desactivar una bodega y su efecto en el Kardex
+
+| Paso | Acción |
+|---|---|
+| 1 | Desactiva una bodega desde el listado (botón **Desactivar**, confirma el diálogo). |
+| 2 | Verifica que su estado cambia a **Inactiva**. |
+| 3 | Ve a **Registrar entrada** (o **Registrar salida**) con una cuenta que tenía esa bodega asignada. |
+
+**Resultado esperado:** la bodega desactivada ya no aparece en el desplegable de bodegas de los formularios de Kardex. El botón en el listado ahora dice **Activar** y permite reactivarla.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
 ---
 
 ## 5. Resumen de resultados
@@ -442,8 +503,13 @@ Observaciones: ___________________________________________
 | 4.6 | Envío offline + sincronización | ☐ | ☐ |
 | 4.7 | Vencimientos próximos resaltados | ☐ | ☐ |
 | 4.8 | Admin/Coordinador sin restricción de bodega | ☐ | ☐ |
+| 4.9 | Acceso al catálogo de bodegas por rol | ☐ | ☐ |
+| 4.10 | Crear bodega / centro de acopio | ☐ | ☐ |
+| 4.11 | Validación de campos obligatorios | ☐ | ☐ |
+| 4.12 | Editar bodega existente | ☐ | ☐ |
+| 4.13 | Desactivar bodega y efecto en Kardex | ☐ | ☐ |
 
-**Total cumple:** ___ / 28
+**Total cumple:** ___ / 33
 
 ## 6. Hallazgos (bugs encontrados)
 

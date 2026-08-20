@@ -34,6 +34,9 @@
                         <flux:sidebar.item icon="user-plus" :href="route('admin.users.pending')" :current="request()->routeIs('admin.users.pending')" wire:navigate>
                             {{ __('Usuarios pendientes') }}
                         </flux:sidebar.item>
+                        <flux:sidebar.item icon="building-storefront" :href="route('admin.warehouses.index')" :current="request()->routeIs('admin.warehouses.*')" wire:navigate>
+                            {{ __('Bodegas / Centros de Acopio') }}
+                        </flux:sidebar.item>
                     </flux:sidebar.group>
                 @endif
             </flux:sidebar.nav>

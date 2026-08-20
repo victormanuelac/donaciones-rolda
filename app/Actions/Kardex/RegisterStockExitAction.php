@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Kardex;
 
+use App\Exceptions\ExpiredStockException;
 use App\Exceptions\InsufficientStockException;
 use App\Models\StockEntry;
 use App\Models\StockExit;
@@ -37,6 +38,10 @@ class RegisterStockExitAction
             }
 
             $entry = StockEntry::lockForUpdate()->findOrFail($payload['stock_entry_id']);
+
+            if ($entry->expiry_date !== null && $entry->expiry_date->isPast()) {
+                throw new ExpiredStockException;
+            }
 
             $available = $entry->availableQuantity();
 

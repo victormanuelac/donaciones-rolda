@@ -70,4 +70,9 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->role === UserRole::Admin;
     }
+
+    public function canSurveyCensus(): bool
+    {
+        return in_array($this->role, [UserRole::Operator, UserRole::Coordinator, UserRole::Admin], true);
+    }
 }

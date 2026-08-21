@@ -14,7 +14,7 @@ Estas decisiones se tomaron el 21-ago-2026. Si alguna cambia, este documento dej
 | Cómputo | **EC2 + Docker (Sail)**, una instancia por ambiente | Es lo único realista para el lanzamiento del 23-ago-2026. ECS Fargate queda como fase posterior. |
 | Base de datos | **MySQL en contenedor ahora**, migración a **RDS después** | Prioriza llegar al lanzamiento. La migración a RDS está en la sección 11 y **no es opcional a mediano plazo** (ver sección 9). |
 | Despliegue | **Automático a `test`, manual a producción** | Producción maneja datos personales y de salud; un merge equivocado no debe llegar solo. |
-| Acceso de CI | **Runner autoalojado en cada instancia** | Evita abrir el puerto 22 a GitHub. ⚠️ **Requiere las mitigaciones de la sección 7.2 — el repositorio es público.** |
+| Acceso de CI | **AWS SSM con OIDC**, sobre runners de GitHub | Sin credenciales de larga vida y sin puertos de entrada. El repositorio es público, lo que descarta los runners autoalojados (sección 7.2). |
 | DNS / TLS / WAF | **Cloudflare** | Ya disponible. Aporta TLS, WAF y es el mismo proveedor de Turnstile. |
 | Correo | **Amazon SES** | Coherente con el resto de AWS y barato. Ojo con el sandbox (sección 6.4). |
 
@@ -47,8 +47,12 @@ Estas decisiones se tomaron el 21-ago-2026. Si alguna cambia, este documento dej
         │ app (Sail)  │ │ app (Sail)    │
         │ mysql 8.4   │ │ mysql 8.4     │
         │ redis       │ │ redis         │
-        │ gh-runner   │ │ gh-runner     │
-        └─────────────┘ └───────────────┘
+        │ agente SSM  │ │ agente SSM    │
+        └──────▲──────┘ └──────▲────────┘
+               │               │
+               └───── AWS SSM ─┘   ← saliente; sin puertos de entrada
+                        ▲
+                 GitHub Actions (OIDC)
 ```
 
 Dos instancias **completamente separadas**: distinta base de datos, distinto `APP_KEY`, distintos secretos. Nunca apuntes el ambiente de pruebas a la base de producción — los seeders de demo borran y recrean datos.
@@ -59,10 +63,10 @@ Dos instancias **completamente separadas**: distinta base de datos, distinto `AP
 
 Necesitas tener a mano:
 
-- [ ] Cuenta de AWS con permiso para crear EC2, Elastic IP y Security Groups
+- [ ] Cuenta de AWS con permiso para crear EC2, Elastic IP, Security Groups y **roles de IAM** (para OIDC, sección 7.4)
 - [ ] Dominio administrado en Cloudflare
 - [ ] Par de llaves SSH para las instancias
-- [ ] Acceso de administrador al repositorio en GitHub (para registrar runners y crear Environments)
+- [ ] Acceso de administrador al repositorio en GitHub (para crear Environments y sus variables)
 - [ ] Un gestor de contraseñas del equipo para custodiar `APP_KEY` (ver sección 9.1)
 
 ---
@@ -80,16 +84,18 @@ Este procedimiento aplica igual a `test` y a producción. Hazlo **dos veces**.
 | Disco | 30 GB gp3 | 50 GB gp3 |
 | IP elástica | Sí | Sí |
 
-> La instancia corre app + MySQL + Redis + runner de CI en la misma máquina. `t3.micro` (1 GB) **no alcanza**: `npm run build` agota la memoria. Si usas `t3.small` en producción, la sección 3.3 (swap) deja de ser opcional.
+> La instancia corre app + MySQL + Redis en la misma máquina. `t3.micro` (1 GB) **no alcanza**: `npm run build` agota la memoria. Si usas `t3.small` en producción, la sección 3.3 (swap) deja de ser opcional.
 
 ### 3.2 Security Group
 
 | Puerto | Origen | Motivo |
 |---|---|---|
-| 22 (SSH) | `<tu-ip-administracion>/32` | Administración. **Nunca `0.0.0.0/0`.** |
 | 80 (HTTP) | [Rangos de IP de Cloudflare](https://www.cloudflare.com/ips/) | Solo Cloudflare debe alcanzar el origen |
+| 22 (SSH) | `<tu-ip-administracion>/32`, **temporal** | Solo hasta que SSM funcione (sección 7.3); después se cierra |
 
 Restringir el puerto 80 a los rangos de Cloudflare es lo que impide que alguien encuentre la IP del origen y esquive el WAF. Sin eso, Cloudflare es decorativo.
+
+El puerto 22 es transitorio: en cuanto el agente de SSM esté registrado, ciérralo. `aws ssm start-session` da consola interactiva sin exponer nada y deja rastro en CloudTrail. Mientras siga abierto, jamás lo dejes en `0.0.0.0/0`.
 
 No se abre el 3306 ni el 6379: MySQL y Redis solo se hablan dentro de la red de Docker.
 
@@ -260,37 +266,99 @@ Crea **dos** widgets, uno por dominio, y pon sus claves en el `.env` correspondi
 
 `.github/workflows/tests.yml` corre en cada PR y en push a `main`/`test`: Pint, PHPStan y Pest sobre runners de GitHub. No lo cambies; es la barrera de calidad.
 
-### 7.2 ⚠️ Runner autoalojado en un repositorio público
+### 7.2 Por qué NO se usan runners autoalojados
 
-**`donaciones-rolda` es un repositorio público.** GitHub desaconseja explícitamente usar runners autoalojados en repos públicos: cualquiera puede abrir un PR desde un fork y, si un workflow con `pull_request` corre en tu runner, **ejecuta código arbitrario dentro de tu servidor de producción**.
+**`donaciones-rolda` es un repositorio público**, y esa sola condición descarta los runners autoalojados. GitHub lo desaconseja explícitamente: cualquiera puede abrir un PR desde un fork y, si un workflow corre en una máquina tuya, **ejecuta código arbitrario dentro del servidor de producción** — con la base de datos y la `APP_KEY` ahí mismo. El runner además persiste entre jobs, así que un atacante puede dejar algo instalado.
 
-Se puede hacer de forma segura, pero **las tres mitigaciones siguientes son obligatorias**, no recomendaciones:
+Conviene entender la distinción, porque se confunde con facilidad: **GitHub nunca entrega secretos ni tokens OIDC a un workflow disparado desde un fork.** Ese vector no existe cuando el job corre en un runner efímero de GitHub. El problema no es "CI que despliega desde un repo público", es específicamente "CI que corre sobre hardware propio".
 
-1. **Ningún workflow que corra en el runner autoalojado puede dispararse por `pull_request`.** Solo `push` a ramas protegidas y `workflow_dispatch`. `tests.yml` (que sí usa `pull_request`) debe seguir en `ubuntu-latest`.
-2. **Settings → Actions → General → Fork pull request workflows:** exigir aprobación para **todos** los colaboradores externos.
-3. **El runner de producción corre solo bajo un GitHub Environment con revisores requeridos** (sección 7.4).
+| Opción | Credencial | Puertos abiertos | Riesgo principal |
+|---|---|---|---|
+| **SSM + OIDC** ← elegida | Token efímero (~15 min) | **Ninguno** | Un rol de IAM mal acotado |
+| SSH con clave en secrets | Clave de larga vida | 22 expuesto a GitHub | Si la clave se filtra, acceso total y permanente |
+| Runner autoalojado | — | Ninguno | **Ejecución de código arbitrario en el servidor** |
 
-Si estas mitigaciones no se pueden sostener operativamente, la alternativa correcta es despliegue por SSH con clave en secrets, o AWS SSM con OIDC. **Es preferible cambiar de método que dejar el runner mal configurado.**
+SSM gana en las dos dimensiones que importan: no hay credencial que robar porque expira, y no hay puerto que atacar porque el agente sale hacia AWS — nadie entra.
 
-### 7.3 Instalar el runner
+### 7.3 Preparar SSM en la instancia
 
-En cada instancia, con un usuario **sin** privilegios de sudo:
+Las AMI de Ubuntu publicadas en AWS ya traen el agente. Verifica:
 
 ```bash
-mkdir ~/actions-runner && cd ~/actions-runner
-curl -o actions-runner-linux-x64.tar.gz -L \
-  https://github.com/actions/runner/releases/latest/download/actions-runner-linux-x64.tar.gz
-tar xzf actions-runner-linux-x64.tar.gz
-
-# El token se obtiene en Settings → Actions → Runners → New self-hosted runner
-./config.sh --url https://github.com/victormanuelac/donaciones-rolda --token <TOKEN> \
-            --labels donaciones-test        # en producción: donaciones-prod
-sudo ./svc.sh install && sudo ./svc.sh start
+sudo snap services amazon-ssm-agent
+# si no está: sudo snap install amazon-ssm-agent --classic
 ```
 
-Las etiquetas `donaciones-test` y `donaciones-prod` son lo que dirige cada despliegue a su instancia. No las repitas entre máquinas.
+Adjunta a la instancia un **IAM Instance Profile** con la política administrada `AmazonSSMManagedInstanceCore`. Sin eso el agente no se registra.
 
-### 7.4 GitHub Environments
+Confirma desde tu equipo que la instancia aparece:
+
+```bash
+aws ssm describe-instance-information \
+  --query "InstanceInformationList[].{Id:InstanceId,Estado:PingStatus}" --output table
+```
+
+> Una vez que SSM funciona, **cierra el puerto 22 del Security Group**. `aws ssm start-session --target <instance-id>` te da consola interactiva sin puerto expuesto y con todo el acceso auditado en CloudTrail. Es una mejora de seguridad por encima de lo que había, no solo un cambio de método de despliegue.
+
+### 7.4 Configurar OIDC entre GitHub y AWS
+
+**Paso 1 — Registra el proveedor OIDC** (una sola vez por cuenta de AWS):
+
+```bash
+aws iam create-open-id-connect-provider \
+  --url https://token.actions.githubusercontent.com \
+  --client-id-list sts.amazonaws.com
+```
+
+**Paso 2 — Crea un rol por ambiente.** Son dos roles separados, `deploy-pruebas` y `deploy-produccion`, cada uno con permiso solo sobre su instancia. La política de confianza es donde está el seguro real:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {
+      "Federated": "arn:aws:iam::<cuenta>:oidc-provider/token.actions.githubusercontent.com"
+    },
+    "Action": "sts:AssumeRoleWithWebIdentity",
+    "Condition": {
+      "StringEquals": {
+        "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+        "token.actions.githubusercontent.com:sub": "repo:victormanuelac/donaciones-rolda:environment:production"
+      }
+    }
+  }]
+}
+```
+
+La condición `sub` es lo que hace segura toda la configuración: ata el rol de producción al Environment `production`, que a su vez exige aprobación humana (7.5). Un fork no puede pedir ese token y una rama arbitraria tampoco. Para el rol de pruebas, usa `repo:victormanuelac/donaciones-rolda:environment:test`.
+
+> ⚠️ **Usa `StringEquals`, nunca `StringLike` con comodines.** Un `sub` como `repo:victormanuelac/donaciones-rolda:*` deja que cualquier rama del repositorio asuma el rol de producción y anula el control de aprobación.
+
+**Paso 3 — Política de permisos del rol**, acotada a una sola instancia y a un solo documento de SSM:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "ssm:SendCommand",
+      "Resource": [
+        "arn:aws:ec2:<region-aws>:<cuenta>:instance/<instance-id-prod>",
+        "arn:aws:ssm:<region-aws>::document/AWS-RunShellScript"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["ssm:GetCommandInvocation", "ssm:ListCommandInvocations"],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+### 7.5 GitHub Environments
 
 Crea dos Environments en Settings → Environments:
 
@@ -299,9 +367,30 @@ Crea dos Environments en Settings → Environments:
 | `test` | `test` | ninguno |
 | `production` | `main` | **al menos 1** |
 
-El revisor requerido en `production` es lo que convierte el despliegue en manual: el workflow se queda esperando aprobación antes de tocar el servidor.
+El revisor requerido en `production` es lo que convierte el despliegue en manual: el workflow se queda esperando aprobación antes de tocar el servidor. Además, esa aprobación es lo que la condición `sub` del rol de IAM está exigiendo — sin ella no se emite el token.
 
-### 7.5 `deploy.yml`
+En cada Environment define estas variables (Environment variables, no secrets — no son sensibles):
+
+| Variable | `test` | `production` |
+|---|---|---|
+| `AWS_ROLE_ARN` | `arn:aws:iam::<cuenta>:role/deploy-pruebas` | `arn:aws:iam::<cuenta>:role/deploy-produccion` |
+| `INSTANCE_ID` | `<instance-id-test>` | `<instance-id-prod>` |
+| `RAMA` | `test` | `main` |
+
+### 7.6 `deploy.sh` — los pasos del despliegue
+
+Los pasos viven en [`deploy.sh`](../deploy.sh), versionado en la raíz del repositorio y no incrustado en el YAML: así se pueden probar, revisar en un PR y ejecutar a mano si CI no está disponible.
+
+El script actualiza el código a la rama indicada, reinstala dependencias, corre migraciones, compila assets, regenera cachés y verifica `/up`. Si cualquier paso falla, un `trap` revierte el código al commit anterior y termina con error.
+
+```bash
+./deploy.sh test     # ambiente de pruebas
+./deploy.sh main     # producción
+```
+
+> El `trap` revierte el **código**, no la base de datos. Si el despliegue falló después de una migración destructiva, lee la sección 8.3 antes de tocar nada.
+
+### 7.7 `deploy.yml`
 
 ```yaml
 name: deploy
@@ -310,16 +399,10 @@ on:
   push:
     branches: [test]          # despliegue automático a pruebas
   workflow_dispatch:          # despliegue manual a producción
-    inputs:
-      ambiente:
-        description: Ambiente a desplegar
-        required: true
-        default: production
-        type: choice
-        options: [production]
 
 permissions:
   contents: read
+  id-token: write             # habilita OIDC — sin esto no hay token
 
 concurrency:
   group: deploy-${{ github.ref }}
@@ -327,62 +410,69 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on:
-      - self-hosted
-      - ${{ github.event_name == 'push' && 'donaciones-test' || 'donaciones-prod' }}
+    runs-on: ubuntu-latest    # runner efímero de GitHub, nunca self-hosted
     environment: ${{ github.event_name == 'push' && 'test' || 'production' }}
 
     steps:
-      - name: Desplegar
-        working-directory: /home/ubuntu/donaciones-rolda
+      - name: Autenticarse en AWS vía OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: <region-aws>
+
+      - name: Desplegar por SSM
         run: |
           set -euo pipefail
 
-          RAMA="${{ github.event_name == 'push' && 'test' || 'main' }}"
+          ID=$(aws ssm send-command \
+            --instance-ids "${{ vars.INSTANCE_ID }}" \
+            --document-name AWS-RunShellScript \
+            --comment "deploy ${{ github.sha }}" \
+            --parameters commands='["runuser -l ubuntu -c \"cd /home/ubuntu/donaciones-rolda && ./deploy.sh ${{ vars.RAMA }}\""]' \
+            --query Command.CommandId --output text)
 
-          git fetch origin "$RAMA"
-          ANTERIOR=$(git rev-parse HEAD)
-          echo "ANTERIOR=$ANTERIOR" >> "$GITHUB_ENV"
-          git checkout "$RAMA"
-          git reset --hard "origin/$RAMA"
+          echo "Comando SSM: $ID"
 
-          ./vendor/bin/sail down --remove-orphans || true
-          ./vendor/bin/sail up -d
-          ./vendor/bin/sail composer install --no-dev --optimize-autoloader
-          ./vendor/bin/sail artisan migrate --force
-          ./vendor/bin/sail npm ci
-          ./vendor/bin/sail npm run build
-          ./vendor/bin/sail artisan optimize
+          aws ssm wait command-executed \
+            --command-id "$ID" --instance-id "${{ vars.INSTANCE_ID }}" || true
 
-      - name: Verificar que responde
-        run: |
-          for i in $(seq 1 30); do
-            if curl -sf http://localhost/up > /dev/null; then
-              echo "Despliegue verificado"; exit 0
-            fi
-            sleep 2
-          done
-          echo "La aplicación no respondió en /up"; exit 1
+          aws ssm get-command-invocation \
+            --command-id "$ID" --instance-id "${{ vars.INSTANCE_ID }}" \
+            --query StandardOutputContent --output text
 
-      - name: Revertir si falló
-        if: failure()
-        working-directory: /home/ubuntu/donaciones-rolda
-        run: |
-          git reset --hard "$ANTERIOR"
-          ./vendor/bin/sail up -d
-          ./vendor/bin/sail artisan optimize
-          echo "Revertido a $ANTERIOR — revisa las migraciones a mano (ver 8.3)"
+          ESTADO=$(aws ssm get-command-invocation \
+            --command-id "$ID" --instance-id "${{ vars.INSTANCE_ID }}" \
+            --query Status --output text)
+
+          if [ "$ESTADO" != "Success" ]; then
+            echo "::error::El despliegue falló ($ESTADO)"
+            aws ssm get-command-invocation \
+              --command-id "$ID" --instance-id "${{ vars.INSTANCE_ID }}" \
+              --query StandardErrorContent --output text
+            exit 1
+          fi
 ```
 
-> El paso de reversión devuelve el **código**, no la base de datos. Si el despliegue falló después de una migración destructiva, lee la sección 8.3 antes de tocar nada.
+El `|| true` tras el `wait` es deliberado: el waiter falla cuando el comando falla, y en ese caso queremos leer la salida del script antes de terminar el job. El estado real se evalúa después.
 
-### 7.6 Despliegue a producción, paso a paso
+**No hay ningún secreto en este workflow.** El único permiso sensible es `id-token: write`, y GitHub no lo concede a workflows disparados desde forks.
+
+### 7.8 Despliegue a producción, paso a paso
 
 1. PR de `test` a `main`, aprobado y con CI en verde.
 2. Squash-merge (el ruleset no permite otra cosa).
-3. Actions → `deploy` → Run workflow → rama `main`, ambiente `production`.
-4. El workflow queda **esperando aprobación**. Un revisor la otorga.
+3. Actions → `deploy` → Run workflow → rama `main`.
+4. El workflow queda **esperando aprobación**. Un revisor la otorga; recién ahí AWS emite el token.
 5. Verifica manualmente: entrar, buscar en el portal público, registrar un movimiento en el Kardex.
+
+### 7.9 Si el despliegue automático no está disponible
+
+Mientras `deploy.yml` no exista, o si CI está caído, el despliegue manual es el mismo script:
+
+```bash
+aws ssm start-session --target <instance-id>
+sudo runuser -l ubuntu -c "cd /home/ubuntu/donaciones-rolda && ./deploy.sh main"
+```
 
 ---
 
@@ -510,7 +600,8 @@ Antes de que entren datos reales:
 **Infraestructura**
 - [ ] Cifrado del volumen EBS activado
 - [ ] Puerto 80 restringido a los rangos de Cloudflare
-- [ ] Puerto 22 restringido a IP de administración
+- [ ] **Puerto 22 cerrado** (acceso por `aws ssm start-session`)
+- [ ] Agente SSM registrado y respondiendo
 - [ ] Swap configurado
 
 **Aplicación**
@@ -534,10 +625,12 @@ Antes de que entren datos reales:
 - [ ] Recuperación de contraseña probada de extremo a extremo
 
 **CI/CD**
-- [ ] Runner de producción con la etiqueta `donaciones-prod`
 - [ ] Environment `production` con revisor requerido
-- [ ] Ningún workflow con `pull_request` corriendo en runners autoalojados
-- [ ] Aprobación obligatoria para PRs de forks
+- [ ] Rol de IAM de producción con `sub` en **`StringEquals`**, apuntando al Environment `production` (nunca comodines)
+- [ ] Rol acotado a `ssm:SendCommand` sobre una sola instancia
+- [ ] Ningún runner autoalojado registrado en el repositorio
+- [ ] Ningún secreto de larga vida de AWS en GitHub Secrets
+- [ ] Despliegue probado primero en `test`
 
 **Operación**
 - [ ] Respaldo diario corriendo hacia S3

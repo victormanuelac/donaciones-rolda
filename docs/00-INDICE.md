@@ -18,7 +18,7 @@ La documentación de este repositorio se escribió en varias pasadas el mismo d�
 | **Timeline / lanzamiento** | **7 días, lanzamiento 23 de agosto de 2026** — ver [`00-Presentacion-Ejecutiva-Donaciones-Rolda.md`](00-Presentacion-Ejecutiva-Donaciones-Rolda.md) | 11 días / 2 de septiembre (`07-Plan-Entrega-MVP.md`, `Especificaciones_Técnicas_y_Arquitectura_v2.md`); 30 de julio (obsoleto, ya pasado) |
 | **Diseño del módulo de Beneficiarios** | **Documento 11** (`11-Modulo-7-Beneficiarios-Estadisticas-Inteligentes.md`) — scoring 0-100 en 3 niveles, 8 tablas | `archive/10-Modulo-Estadisticas-Census-Priorization.md` (algoritmo y esquema de datos incompatibles, descartado) |
 | **Especificación técnica base** | **`Especificaciones_Técnicas_y_Arquitectura_-_Donaciones_Rolda_v2.md`** (integra Módulo 7) | `archive/01-Especificaciones-Tecnicas-Expandidas.md` (v1, pre-Módulo 7) |
-| **Despliegue (cómo se pone en línea hoy)** | **Documento 18** (`18-Guia-de-Despliegue-Test-y-Produccion.md`) — EC2 + Docker por ambiente, Cloudflare, CI/CD con runners autoalojados (21-ago-2026) | `README.md` §5 (solo pruebas, manual); `05-Analisis-Infraestructura-AWS.md` describe la arquitectura ECS/Aurora **objetivo**, que no está construida |
+| **Despliegue (cómo se pone en línea hoy)** | **Documento 18** (`18-Guia-de-Despliegue-Test-y-Produccion.md`) — EC2 + Docker por ambiente, Cloudflare, CI/CD con AWS SSM + OIDC (21-ago-2026) | `README.md` §5 (solo pruebas, manual); `05-Analisis-Infraestructura-AWS.md` describe la arquitectura ECS/Aurora **objetivo**, que no está construida |
 
 El desglose de esfuerzo por módulo y equipo más granular sigue siendo el de `07-Plan-Entrega-MVP.md` + `11-Modulo-7-...md` — es la base numérica usada para poblar el roadmap en Notion, aunque su calendario de 11 días no es el compromiso público vigente (7 días). Ver la nota de vigencia al inicio de cada documento afectado.
 
@@ -52,7 +52,7 @@ El desglose de esfuerzo por módulo y equipo más granular sigue siendo el de `0
 
 ## 4. Infraestructura, costos y entrega
 
-- [`18-Guia-de-Despliegue-Test-y-Produccion.md`](18-Guia-de-Despliegue-Test-y-Produccion.md) — **guía normativa de despliegue vigente** (21-ago-2026): cómo se pone la app en el ambiente de pruebas y en producción hoy — EC2 + Docker, Cloudflare, CI/CD con runners autoalojados, respaldos, checklist de salida y deuda técnica conocida. Reemplaza a la sección 5 del `README.md`.
+- [`18-Guia-de-Despliegue-Test-y-Produccion.md`](18-Guia-de-Despliegue-Test-y-Produccion.md) — **guía normativa de despliegue vigente** (21-ago-2026): cómo se pone la app en el ambiente de pruebas y en producción hoy — EC2 + Docker, Cloudflare, CI/CD con AWS SSM + OIDC, respaldos, checklist de salida y deuda técnica conocida. Reemplaza a la sección 5 del `README.md`.
 - [`05-Analisis-Infraestructura-AWS.md`](05-Analisis-Infraestructura-AWS.md) — arquitectura AWS de referencia (ECS/RDS/Redis/ALB), Terraform. *Diseño **objetivo a futuro**, no construido — para desplegar hoy usa el documento 18. Cifra de costo desactualizada, ver tabla de vigencia arriba.*
 - [`06-Estimacion-Costos-3Meses.md`](06-Estimacion-Costos-3Meses.md) — metodología de cálculo de costo AWS por servicio. *Cifra total desactualizada, ver tabla de vigencia arriba.*
 - [`ANALISIS-COSTOS-REALES.md`](ANALISIS-COSTOS-REALES.md) — **presupuesto vigente** ($8,256 USD con margen 200%)

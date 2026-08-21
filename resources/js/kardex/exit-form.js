@@ -1,0 +1,115 @@
+import { enqueue } from '../offline/queue.js';
+import { newClientUuid } from '../offline/uuid.js';
+
+const SYNC_ENDPOINT = '/kardex/salidas/sync';
+
+function emptyState() {
+    return {
+        submitting: false,
+        submitted: false,
+        queuedOffline: false,
+        errorMessage: '',
+        warehouse_id: '',
+        stock_entry_id: '',
+        quantity_released: 1,
+        exit_reason: '',
+        received_by_name: '',
+        destination_description: '',
+        notes: '',
+    };
+}
+
+/**
+ * @param {Record<string, number>} warehouseByStockEntry Mapa id de stock_entry -> id de bodega,
+ *   para completar warehouse_id automáticamente al elegir el lote a despachar.
+ * @param {Array<number>} fefoOrderedStockEntryIds Ids de lotes disponibles en orden FEFO
+ *   (vencimiento más próximo primero), para preseleccionar el sugerido por defecto.
+ */
+export default function stockExitForm(warehouseByStockEntry, fefoOrderedStockEntryIds) {
+    return {
+        ...emptyState(),
+        warehouseByStockEntry,
+
+        init() {
+            if (fefoOrderedStockEntryIds.length > 0) {
+                this.stock_entry_id = fefoOrderedStockEntryIds[0];
+                this.onStockEntryChange();
+            }
+        },
+
+        onStockEntryChange() {
+            this.warehouse_id = this.warehouseByStockEntry[this.stock_entry_id] ?? '';
+        },
+
+        buildPayload() {
+            return {
+                client_uuid: newClientUuid(),
+                warehouse_id: this.warehouse_id,
+                stock_entry_id: this.stock_entry_id,
+                quantity_released: this.quantity_released,
+                exit_reason: this.exit_reason,
+                received_by_name: this.received_by_name || null,
+                destination_description: this.destination_description || null,
+                notes: this.notes || null,
+            };
+        },
+
+        async submit() {
+            this.submitting = true;
+            this.errorMessage = '';
+
+            // `payload` se arma dentro del try: si armarlo falla, el error tiene
+            // que verse en pantalla en vez de dejar el botón colgado en
+            // "Guardando..." (hallazgo C-2).
+            let payload = null;
+
+            try {
+                payload = this.buildPayload();
+
+                const response = await fetch(SYNC_ENDPOINT, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                    },
+                    body: JSON.stringify({ entries: [payload] }),
+                });
+
+                if (response.ok) {
+                    const { results } = await response.json();
+
+                    if (results[0]?.status === 'ok') {
+                        this.submitted = true;
+                    } else {
+                        this.errorMessage = results[0]?.message ?? 'No se pudo guardar la salida.';
+                    }
+                } else if (response.status === 422) {
+                    const body = await response.json();
+                    this.errorMessage = Object.values(body.errors ?? {}).flat().join(' ') || 'Revisa los datos del formulario.';
+                } else {
+                    await this.queueOffline(payload.client_uuid, payload);
+                }
+            } catch {
+                if (payload === null) {
+                    this.errorMessage = 'No se pudo preparar el registro en este dispositivo. Recarga la página e intenta de nuevo.';
+                } else {
+                    await this.queueOffline(payload.client_uuid, payload);
+                }
+            } finally {
+                this.submitting = false;
+            }
+        },
+
+        async queueOffline(clientUuid, payload) {
+            await enqueue(SYNC_ENDPOINT, clientUuid, payload);
+            this.queuedOffline = true;
+            this.submitted = true;
+        },
+
+        startNew() {
+            Object.assign(this, emptyState());
+        },
+    };
+}

@@ -49,6 +49,42 @@ Abre **http://localhost**.
 
 Las credenciales de base de datos ya vienen configuradas en `.env.example` para apuntar a los contenedores de Sail (`DB_HOST=mysql`, `DB_DATABASE=laravel`, `DB_USERNAME=sail`, `DB_PASSWORD=password`) — no hace falta tocarlas para desarrollo local.
 
+### Usuario de prueba (super admin)
+
+El seeder (`database/seeders/DatabaseSeeder.php`, se ejecuta con `sail artisan migrate` si agregas `--seed`, o `sail artisan db:seed`) crea un usuario con rol `admin` y acceso total, para probar el sistema localmente sin pasar por el flujo de aprobación de usuarios del Módulo 2:
+
+| Campo | Valor |
+|---|---|
+| Email | `admin@donaciones-rolda.test` |
+| Password | `AdminRolda#2026` |
+| Rol | `admin` (`App\Enums\UserRole::Admin`) |
+| Estado | `active` |
+
+```bash
+./vendor/bin/sail artisan migrate:fresh --seed   # recrea la BD e incluye este usuario
+```
+
+### Usuario de prueba (operador de campo) + datos de Kardex
+
+El mismo seed corre `database/seeders/KardexDemoSeeder.php`: crea 2 bodegas de ejemplo (Bodega Centro, Bodega Guayabal), su catálogo de categorías/ítems, un operador ya asignado a ambas bodegas (sin depender de `tinker` para probar el Kardex) y existencias de ejemplo cubriendo los tres niveles de semáforo, un lote agotado (estado `withdrawn`), dos lotes por vencer en pocos días (para ver alertas en `/kardex/vencimientos`), dos ítems por debajo de su punto de reorden, Bodega Centro deliberadamente por encima de su capacidad máxima (para ver la alerta en `/kardex` y en `/admin/bodegas`), dos conteos físicos de ejemplo (uno sin diferencia, uno con un ajuste por faltante) para ver `/kardex/conteo` y la ficha por ítem en `/kardex/ficha`, y una solicitud de ítem nuevo de ejemplo (Módulo 4) para ver la cola de revisión en `/admin/items-pendientes`.
+
+| Campo | Valor |
+|---|---|
+| Email | `operador@donaciones-rolda.test` |
+| Password | `OperadorRolda#2026` |
+| Rol | `operator` (`App\Enums\UserRole::Operator`) |
+| Estado | `active`, asignado a Bodega Centro y Bodega Guayabal |
+
+> ⚠️ **Solo para local/pruebas.** Estas credenciales están en texto plano en este README a propósito — nunca corras este seeder contra el ambiente de producción, y cámbialas si el ambiente de pruebas en EC2 queda expuesto más allá de tu equipo.
+
+### Datos de prueba de Entregas y Seguimiento (Módulo 6)
+
+El mismo seed corre `database/seeders/DeliveriesDemoSeeder.php`: crea 3 hogares beneficiarios de ejemplo (como si vinieran del censo del Módulo 7) y varias entregas históricas del operador de prueba hacia esos hogares, usando el mismo login que el Kardex — sin credenciales nuevas. Incluye un ítem (`Frijol`) con pocas existencias y consumo reciente sostenido, para ver la proyección de agotamiento en `/kardex` y en `/entregas/registrar`.
+
+### Datos de prueba del perfil de vulnerabilidad — Fase 2 (Módulo 7)
+
+El mismo seed corre `database/seeders/BeneficiariesDemoSeeder.php`: agrega 2 ítems médicos de ejemplo (Hierro y Ácido Fólico prenatal, Metformina 500mg), siembra 3 protocolos de recomendación de ejemplo y completa el perfil de vulnerabilidad de dos de los hogares ya sembrados por `DeliveriesDemoSeeder` (Yolanda Pérez, embarazada de tercer trimestre; Carlos Gómez, con diabetes), con sus recomendaciones ya generadas. Entra a `/beneficiarios` con la cuenta de **admin** (ya tiene acceso — el rol `coordinator`/`doctor` también puede, pero no hay una cuenta de ejemplo con esos roles todavía; créala tú mismo aprobando un registro nuevo si la necesitas).
+
 ### Alias `sail` (opcional, pero recomendado)
 
 Para no escribir `./vendor/bin/sail` cada vez:

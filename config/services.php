@@ -35,4 +35,20 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Cloudflare Turnstile (Módulo 1 — desbloqueo de contacto antibot)
+    |--------------------------------------------------------------------------
+    |
+    | Los valores por defecto son las llaves de prueba públicas y documentadas
+    | de Cloudflare (siempre pasan el challenge) — no son un secreto filtrado,
+    | ver https://developers.cloudflare.com/turnstile/troubleshooting/testing.
+    | En producción deben sobreescribirse con las llaves reales del sitio.
+    |
+    */
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY', '1x00000000000000000000AA'),
+        'secret_key' => env('TURNSTILE_SECRET_KEY', '1x0000000000000000000000000000000AA'),
+    ],
+
 ];

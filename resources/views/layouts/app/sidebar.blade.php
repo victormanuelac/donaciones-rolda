@@ -4,6 +4,12 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-canvas text-ink">
+        {{-- Enlace para saltar la navegación: sin él hay que tabular todo el
+             sidebar en cada página antes de llegar al contenido (hallazgo B-2). --}}
+        <a href="#contenido"
+           class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded focus:bg-primary focus:px-4 focus:py-2 focus:font-display focus:font-bold focus:text-white">
+            {{ __('Saltar al contenido') }}
+        </a>
         <flux:sidebar sticky collapsible="mobile" class="border-e-2 border-line bg-surface">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
@@ -15,20 +21,46 @@
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
+
+                    @if (auth()->user()?->canSurveyCensus())
+                        <flux:sidebar.item icon="clipboard-document-list" :href="route('census.create')" :current="request()->routeIs('census.*')" wire:navigate>
+                            {{ __('Censo de hogares') }}
+                        </flux:sidebar.item>
+                    @endif
+
+                    @if (auth()->user()?->canManageBeneficiaries())
+                        <flux:sidebar.item icon="heart" :href="route('beneficiaries.index')" :current="request()->routeIs('beneficiaries.*')" wire:navigate>
+                            {{ __('Beneficiarios') }}
+                        </flux:sidebar.item>
+                    @endif
+
+                    @if (auth()->user()?->canManageStock())
+                        <flux:sidebar.item icon="archive-box" :href="route('kardex.index')" :current="request()->routeIs('kardex.*')" wire:navigate>
+                            {{ __('Kardex') }}
+                        </flux:sidebar.item>
+
+                        <flux:sidebar.item icon="truck" :href="route('deliveries.index')" :current="request()->routeIs('deliveries.*')" wire:navigate>
+                            {{ __('Entregas y Seguimiento') }}
+                        </flux:sidebar.item>
+                    @endif
                 </flux:sidebar.group>
+
+                @if (auth()->user()?->isAdmin())
+                    <flux:sidebar.group :heading="__('Administración')" class="grid">
+                        <flux:sidebar.item icon="user-plus" :href="route('admin.users.pending')" :current="request()->routeIs('admin.users.pending')" wire:navigate>
+                            {{ __('Usuarios pendientes') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="building-storefront" :href="route('admin.warehouses.index')" :current="request()->routeIs('admin.warehouses.*')" wire:navigate>
+                            {{ __('Bodegas / Centros de Acopio') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.items.pending')" :current="request()->routeIs('admin.items.pending')" wire:navigate>
+                            {{ __('Ítems pendientes') }}
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+                @endif
             </flux:sidebar.nav>
 
             <flux:spacer />
-
-            <flux:sidebar.nav>
-                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
-                </flux:sidebar.item>
-
-                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
-                </flux:sidebar.item>
-            </flux:sidebar.nav>
 
             <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
         </flux:sidebar>

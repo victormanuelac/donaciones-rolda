@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $stock_entry_id
  * @property int $warehouse_id
+ * @property int|null $family_id
  * @property int $released_by_user_id
  * @property string|null $received_by_name
  * @property int|null $destination_zone_id
@@ -25,7 +26,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $client_uuid
  */
 #[Fillable([
-    'stock_entry_id', 'warehouse_id', 'released_by_user_id', 'received_by_name',
+    'stock_entry_id', 'warehouse_id', 'family_id', 'released_by_user_id', 'received_by_name',
     'destination_zone_id', 'destination_description', 'exit_reason', 'quantity_released',
     'release_date', 'signed_by_receiver', 'signature_path', 'notes', 'client_uuid',
 ])]
@@ -63,5 +64,21 @@ class StockExit extends Model
     public function destinationZone(): BelongsTo
     {
         return $this->belongsTo(GeographicZone::class, 'destination_zone_id');
+    }
+
+    /**
+     * @return BelongsTo<Family, $this>
+     */
+    public function family(): BelongsTo
+    {
+        return $this->belongsTo(Family::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function releasedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'released_by_user_id');
     }
 }

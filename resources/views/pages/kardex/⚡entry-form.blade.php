@@ -1,11 +1,25 @@
 <?php
 
+use App\Actions\MasterItems\RequestNewMasterItemAction;
+use App\Enums\MasterItemStatus;
 use App\Models\Category;
+use App\Models\MasterItem;
+use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('Registrar entrada — Kardex')] class extends Component {
+    public bool $showRequestItemModal = false;
+
+    public string $requestName = '';
+
+    public ?int $requestCategoryId = null;
+
+    public string $requestUnitOfMeasure = '';
+
+    public ?string $requestDescription = null;
+
     #[Computed]
     public function warehouses()
     {
@@ -15,10 +29,42 @@ new #[Title('Registrar entrada — Kardex')] class extends Component {
     #[Computed]
     public function categories()
     {
-        return Category::with(['masterItems' => fn ($query) => $query->where('status', 'approved')->orderBy('name')])
+        return Category::with(['masterItems' => fn ($query) => $query->where('status', MasterItemStatus::Approved)->orderBy('name')])
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->get();
+    }
+
+    public function openRequestItemModal(): void
+    {
+        $this->authorize('request', MasterItem::class);
+
+        $this->reset(['requestName', 'requestCategoryId', 'requestUnitOfMeasure', 'requestDescription']);
+        $this->resetValidation();
+        $this->showRequestItemModal = true;
+    }
+
+    public function requestNewItem(RequestNewMasterItemAction $action): void
+    {
+        $this->authorize('request', MasterItem::class);
+
+        $data = $this->validate([
+            'requestName' => ['required', 'string', 'max:150'],
+            'requestCategoryId' => ['required', 'integer', 'exists:categories,id'],
+            'requestUnitOfMeasure' => ['required', 'string', 'max:30'],
+            'requestDescription' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $action->handle([
+            'name' => $data['requestName'],
+            'category_id' => $data['requestCategoryId'],
+            'unit_of_measure' => $data['requestUnitOfMeasure'],
+            'description' => $data['requestDescription'],
+        ], auth()->user());
+
+        $this->showRequestItemModal = false;
+
+        Flux::toast(variant: 'success', text: __('Solicitud enviada. Un admin la revisará antes de que puedas usarla.'));
     }
 }; ?>
 
@@ -68,6 +114,10 @@ new #[Title('Registrar entrada — Kardex')] class extends Component {
                     @endforeach
                 @endforeach
             </flux:select>
+            <p class="text-xs text-muted mt-1">
+                {{ __('¿No encuentras el ítem?') }}
+                <flux:link href="#" wire:click.prevent="openRequestItemModal">{{ __('Solicitar uno nuevo.') }}</flux:link>
+            </p>
         </flux:field>
 
         <flux:input x-model="quantity" :label="__('Cantidad')" type="number" min="1" />
@@ -82,4 +132,33 @@ new #[Title('Registrar entrada — Kardex')] class extends Component {
             </flux:button>
         </div>
     </div>
+
+    <flux:modal wire:model="showRequestItemModal" class="max-w-md">
+        <div class="space-y-6">
+            <flux:heading size="lg">{{ __('Solicitar ítem nuevo') }}</flux:heading>
+            <p class="text-sm text-muted">{{ __('Queda en revisión hasta que un admin lo apruebe. No podrás usarlo en esta entrada todavía.') }}</p>
+
+            <div class="space-y-4">
+                <flux:input wire:model="requestName" :label="__('Nombre del ítem')" />
+
+                <flux:field>
+                    <flux:label>{{ __('Categoría') }}</flux:label>
+                    <flux:select wire:model="requestCategoryId">
+                        <flux:select.option value="">{{ __('Selecciona...') }}</flux:select.option>
+                        @foreach ($this->categories as $category)
+                            <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </flux:field>
+
+                <flux:input wire:model="requestUnitOfMeasure" :label="__('Unidad de medida')" :placeholder="__('Ej. cajas, kg, unidades')" />
+                <flux:textarea wire:model="requestDescription" :label="__('Notas para quien lo revise (opcional)')" />
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <flux:button wire:click="$set('showRequestItemModal', false)">{{ __('Cancelar') }}</flux:button>
+                <flux:button variant="primary" wire:click="requestNewItem">{{ __('Enviar solicitud') }}</flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </section>

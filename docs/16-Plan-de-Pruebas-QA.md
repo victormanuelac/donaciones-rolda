@@ -1,6 +1,6 @@
 # 🧪 Plan de Pruebas QA — Funcionalidades en construcción
 
-**Alcance de esta versión:** Módulo 1 (Portal Público de Búsqueda, sin autenticación), Módulo 2 (Autenticación y Roles), el Formulario de Encuestas — Censo de Hogares (Fase 1 de triaje + registro de integrantes) y Módulo 3 (Kardex/Inventario de centros de acopio, incluido el catálogo administrable de Bodegas / Centros de Acopio, control de vencidos, FEFO, traslados entre bodegas, alertas de vencimiento y de stock mínimo, conteo físico con ajustes, ficha Kardex por ítem y alerta de sobrecupo de bodega). Se actualiza a medida que se agregan módulos nuevos.
+**Alcance de esta versión:** Módulo 1 (Portal Público de Búsqueda, sin autenticación), Módulo 2 (Autenticación y Roles), el Formulario de Encuestas — Censo de Hogares (Fase 1 de triaje + registro de integrantes), Módulo 3 (Kardex/Inventario de centros de acopio, incluido el catálogo administrable de Bodegas / Centros de Acopio, control de vencidos, FEFO, traslados entre bodegas, alertas de vencimiento y de stock mínimo, conteo físico con ajustes, ficha Kardex por ítem y alerta de sobrecupo de bodega), Módulo 4 (Control Maestro de Ítems: solicitud, aprobación, rechazo y consolidación) y Módulo 6 (Entregas y Seguimiento). Se actualiza a medida que se agregan módulos nuevos.
 
 Este documento es para quien haga de **QA**: cada caso trae los pasos exactos a ejecutar y la respuesta que debes esperar. Marca **Cumple** o **No cumple** en cada caso y anota cualquier diferencia en Observaciones — no interpretes, compara el resultado real contra el esperado tal como está escrito.
 
@@ -794,7 +794,77 @@ Observaciones: ___________________________________________
 
 ---
 
-## 8. Resumen de resultados
+## 8. Módulo 4 — Control Maestro de Ítems
+
+Requiere la cuenta de operador de prueba (solicita el ítem) y la de admin (revisa la cola). El seed deja una solicitud de ejemplo ("Ibuprofeno 400mg") lista para probar aprobar/rechazar/consolidar sin crear nada a mano.
+
+### Caso 8.1 — Un operador solicita un ítem nuevo
+
+| Paso | Acción |
+|---|---|
+| 1 | Con la cuenta de operador, ve a **Registrar entrada** en el Kardex. |
+| 2 | En el selector de ítem, haz clic en "Solicitar uno nuevo". |
+| 3 | Completa nombre, categoría y unidad de medida, y envía. |
+
+**Resultado esperado:** aparece un mensaje de confirmación. El ítem recién solicitado **no aparece** en el selector de ítems de esa misma pantalla (sigue en revisión).
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 8.2 — Acceso a la cola de revisión según el rol
+
+| Paso | Acción |
+|---|---|
+| 1 | Con la cuenta de operador, intenta ir directo a `/admin/items-pendientes`. |
+| 2 | Inicia sesión como Admin y ve a **Administración → Ítems pendientes**. |
+
+**Resultado esperado:** el operador recibe un error 403. El admin ve la lista, incluyendo "Ibuprofeno 400mg" sembrado por el seed.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 8.3 — Aprobar un ítem editando sus datos
+
+| Paso | Acción |
+|---|---|
+| 1 | En la cola de revisión, cambia el nombre o la categoría del ítem "Ibuprofeno 400mg" antes de aprobarlo. |
+| 2 | Haz clic en **Aprobar**. |
+| 3 | Ve a **Registrar entrada** en el Kardex y busca el ítem en el selector. |
+
+**Resultado esperado:** el ítem desaparece de la cola de pendientes y aparece en el selector de entrada del Kardex con el nombre/categoría editados.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 8.4 — Rechazar un ítem exige motivo
+
+| Paso | Acción |
+|---|---|
+| 1 | En la cola de revisión, haz clic en **Rechazar** sin escribir un motivo. |
+| 2 | Escribe un motivo y vuelve a hacer clic en **Rechazar**. |
+
+**Resultado esperado:** el paso 1 muestra un error y no rechaza el ítem. El paso 2 sí lo rechaza y desaparece de la cola.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 8.5 — Consolidar un ítem duplicado
+
+| Paso | Acción |
+|---|---|
+| 1 | Registra una entrada de stock contra un ítem que sospechas duplicado (o usa uno ya aprobado con existencias). |
+| 2 | Solicita un ítem nuevo con un nombre muy similar (ej. "Acetaminofen 500 MG" vs. "Acetaminofén 500mg" ya existente). |
+| 3 | En la cola de revisión, selecciona el ítem ya aprobado como destino en "Consolidar con..." y haz clic en **Consolidar**. |
+| 4 | Revisa el Kardex del ítem destino. |
+
+**Resultado esperado:** el ítem duplicado desaparece de la cola. Si ya tenía existencias registradas, esas existencias ahora aparecen bajo el ítem destino en el Kardex (no se pierden).
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+---
+
+## 9. Resumen de resultados
 
 | # | Caso | Cumple | No cumple |
 |---|---|---|---|
@@ -856,10 +926,15 @@ Observaciones: ___________________________________________
 | 7.4 | Aviso de entregas recientes | ☐ | ☐ |
 | 7.5 | No entrega más de lo disponible | ☐ | ☐ |
 | 7.6 | Listado de seguimiento con filtros | ☐ | ☐ |
+| 8.1 | Operador solicita ítem nuevo | ☐ | ☐ |
+| 8.2 | Acceso a la cola de revisión por rol | ☐ | ☐ |
+| 8.3 | Aprobar ítem editando datos | ☐ | ☐ |
+| 8.4 | Rechazar ítem exige motivo | ☐ | ☐ |
+| 8.5 | Consolidar ítem duplicado | ☐ | ☐ |
 
-**Total cumple:** ___ / 58
+**Total cumple:** ___ / 63
 
-## 9. Hallazgos (bugs encontrados)
+## 10. Hallazgos (bugs encontrados)
 
 Para cada caso marcado "No cumple", documenta aquí con el mismo número de caso:
 

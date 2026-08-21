@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Enums\AvailabilityLevel;
+use App\Enums\MasterItemStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Public\ContactUnlockRequest;
 use App\Models\Category;
@@ -45,7 +46,7 @@ class SearchController extends Controller
             ->with(['masterItem.category', 'warehouse.zone'])
             ->where('status', 'available')
             ->whereHas('masterItem', function ($query) use ($keyword, $categoryId) {
-                $query->where('status', 'approved');
+                $query->where('status', MasterItemStatus::Approved);
 
                 if ($keyword !== '') {
                     $query->where('name', 'like', '%'.$keyword.'%');

@@ -48,16 +48,38 @@ export default function publicResultsMap() {
             }
 
             for (const warehouse of byWarehouse.values()) {
-                const itemsList = warehouse.items
-                    .map((item) => `${item.availability_emoji} ${item.item_name}`)
-                    .join('<br>');
-
                 const marker = L.marker([warehouse.lat, warehouse.lng])
                     .addTo(this.map)
-                    .bindPopup(`<strong>${warehouse.name}</strong><br>${itemsList}`);
+                    .bindPopup(this.buildPopup(warehouse));
 
                 this.markers.push(marker);
             }
+        },
+
+        /**
+         * El popup se arma con nodos del DOM y `textContent`, nunca concatenando
+         * HTML: `bindPopup()` interpreta las cadenas como HTML, y tanto el nombre
+         * de la bodega como el del ítem son texto que escribe una persona (un
+         * operador puede crear ítems nuevos desde el Kardex, Módulo 4). Con
+         * interpolación esto era un XSS almacenado sobre el portal público, que
+         * es anónimo — ver docs/17-Auditoria-Frontend.md, hallazgo C-1.
+         *
+         * @param {{name: string, items: Array<{item_name: string, availability_emoji: string}>}} warehouse
+         * @returns {HTMLElement}
+         */
+        buildPopup(warehouse) {
+            const container = document.createElement('div');
+
+            const title = document.createElement('strong');
+            title.textContent = warehouse.name;
+            container.append(title);
+
+            for (const item of warehouse.items) {
+                container.append(document.createElement('br'));
+                container.append(document.createTextNode(`${item.availability_emoji} ${item.item_name}`));
+            }
+
+            return container;
         },
     };
 }

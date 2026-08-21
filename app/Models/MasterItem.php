@@ -27,6 +27,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class MasterItem extends Model
 {
+    /**
+     * El nombre lo escribe una persona (un operador lo propone desde el Kardex,
+     * un admin puede corregirlo al aprobarlo) y termina renderizándose en el
+     * portal público anónimo. El escapado real vive en el front, pero se rechazan
+     * `<` y `>` aquí también como defensa en profundidad: ningún insumo real los
+     * necesita — ver docs/17-Auditoria-Frontend.md, hallazgo C-1.
+     *
+     * @return array<int, string>
+     */
+    public static function nameRules(): array
+    {
+        return ['required', 'string', 'max:150', 'regex:/^[^<>]+$/'];
+    }
+
     protected function casts(): array
     {
         return [

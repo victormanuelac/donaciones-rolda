@@ -1,5 +1,6 @@
 import { enqueue } from '../offline/queue.js';
 import { flushQueue } from '../offline/sync.js';
+import { newClientUuid } from '../offline/uuid.js';
 
 const SYNC_ENDPOINT = '/censo/sync';
 
@@ -163,7 +164,7 @@ export default function censusWizard() {
         },
 
         buildPayload() {
-            const clientUuid = crypto.randomUUID();
+            const clientUuid = newClientUuid();
 
             return {
                 client_uuid: clientUuid,
@@ -177,9 +178,14 @@ export default function censusWizard() {
             this.submitting = true;
             this.errorMessage = '';
 
-            const payload = this.buildPayload();
+            // `payload` se arma dentro del try: si armarlo falla, el error tiene
+            // que verse en pantalla en vez de dejar el botón colgado en
+            // "Guardando..." (hallazgo C-2).
+            let payload = null;
 
             try {
+                payload = this.buildPayload();
+
                 const response = await fetch(SYNC_ENDPOINT, {
                     method: 'POST',
                     credentials: 'same-origin',
@@ -206,8 +212,11 @@ export default function censusWizard() {
                     await this.queueOffline(payload.client_uuid, payload);
                 }
             } catch {
-                // Sin conexión: se guarda localmente y se sincroniza más tarde.
-                await this.queueOffline(payload.client_uuid, payload);
+                if (payload === null) {
+                    this.errorMessage = 'No se pudo preparar el registro en este dispositivo. Recarga la página e intenta de nuevo.';
+                } else {
+                    await this.queueOffline(payload.client_uuid, payload);
+                }
             } finally {
                 this.submitting = false;
             }

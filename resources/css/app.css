@@ -86,6 +86,14 @@
     }
 }
 
+/* Alpine no inyecta esta regla: es responsabilidad de la app declararla. Sin
+   ella, cada elemento con `x-cloak` (paneles de éxito, callouts de error,
+   textos de "Guardando...") se ve en el primer pintado hasta que Alpine
+   arranca y los oculta — ver docs/17-Auditoria-Frontend.md, hallazgo C-3. */
+[x-cloak] {
+    display: none !important;
+}
+
 [data-flux-field]:not(ui-radio, ui-checkbox) {
     @apply grid gap-2;
 }

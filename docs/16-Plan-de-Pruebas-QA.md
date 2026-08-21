@@ -1038,6 +1038,110 @@ Observaciones: ___________________________________________
 
 ---
 
+## 10C. Correcciones de la auditoría frontend — Bloque 3
+
+### Caso 10.9 — Las tablas se pueden usar desde el teléfono
+
+| Paso | Acción |
+|---|---|
+| 1 | Abre **Kardex** desde un teléfono (o con el navegador en modo móvil, ancho ~380px). |
+| 2 | Intenta llegar a la última columna de la tabla, la del botón **Ver ficha**. |
+| 3 | Repite en **Beneficiarios**, **Entregas** y **Usuarios pendientes**. |
+
+**Resultado esperado:** la tabla se **desplaza horizontalmente** con el dedo y se llega a todas las columnas, incluido el botón de acción. Antes las columnas de la derecha quedaban recortadas, sin forma de alcanzarlas. Los controles de paginación deben quedarse fijos abajo, sin moverse con el scroll horizontal.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 10.10 — Los botones de acción se pueden tocar con el dedo
+
+| Paso | Acción |
+|---|---|
+| 1 | Desde un teléfono real (no el emulador del navegador: la regla depende de que el dispositivo sea táctil), entra a **Usuarios pendientes** o **Ítems pendientes**. |
+| 2 | Toca los botones de la columna de acciones. |
+
+**Resultado esperado:** los botones son lo bastante grandes para tocarlos sin errar (mínimo 44×44 px). En escritorio deben verse igual de compactos que antes.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 10.11 — Hay señal de actividad al filtrar
+
+| Paso | Acción |
+|---|---|
+| 1 | En **Beneficiarios**, escribe en el buscador o cambia el filtro de zona. |
+| 2 | Observa la tabla justo después. |
+
+**Resultado esperado:** aparece brevemente el texto **"Actualizando..."** y la tabla se atenúa mientras llegan los datos. Antes la pantalla se quedaba congelada sin ninguna señal.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 10.12 — No se pueden duplicar acciones con doble clic
+
+| Paso | Acción |
+|---|---|
+| 1 | Como operador, en **Kardex → Registrar entrada**, abre "Solicitar uno nuevo", completa el formulario y haz **doble clic rápido** en "Enviar solicitud". |
+| 2 | Como admin, ve a **Ítems pendientes**. |
+
+**Resultado esperado:** aparece **una sola** solicitud en la cola, no dos. El botón se deshabilita mientras se envía.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 10.13 — El buscador público distingue "sin conexión" de "sin resultados"
+
+| Paso | Acción |
+|---|---|
+| 1 | Abre el portal público (`/`) y busca algo que sí exista, para confirmar que funciona. |
+| 2 | Desconecta la red (modo avión o "Offline" en las herramientas del navegador). |
+| 3 | Busca otra cosa. |
+| 4 | Reconecta la red y usa el botón **Reintentar**. |
+
+**Resultado esperado:** en el paso 3 aparece un aviso de **problema de conexión** con un botón "Reintentar" — **no** el mensaje "No encontramos insumos disponibles", que diría algo falso. En el paso 4 la búsqueda funciona de nuevo.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 10.14 — El captcha no se duplica
+
+| Paso | Acción |
+|---|---|
+| 1 | En el portal público, busca un insumo y haz clic en **Contactar**. |
+| 2 | Cierra el modal con la tecla **ESC** (no con el botón Cancelar). |
+| 3 | Vuelve a hacer clic en **Contactar**. |
+
+**Resultado esperado:** aparece **un solo** recuadro de verificación. Antes se apilaba un segundo captcha debajo del primero.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 10.15 — La interfaz está toda en español
+
+| Paso | Acción |
+|---|---|
+| 1 | Inicia sesión y revisa el **menú lateral** y el menú de tu usuario. |
+| 2 | Entra a **Ajustes** y recorre Perfil, Seguridad y Apariencia. |
+
+**Resultado esperado:** no queda ninguna palabra en inglés. En concreto, el menú debe decir **"Plataforma"**, **"Panel"**, **"Ajustes"** y **"Cerrar sesión"** — antes decía "Platform", "Dashboard", "Settings" y "Log out".
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 10.16 — Se puede saltar la navegación con el teclado
+
+| Paso | Acción |
+|---|---|
+| 1 | En cualquier pantalla con sesión iniciada, haz clic en la barra de direcciones y luego pulsa **Tab** una sola vez. |
+| 2 | Pulsa **Enter**. |
+
+**Resultado esperado:** al pulsar Tab aparece un botón visible **"Saltar al contenido"** arriba a la izquierda; al pulsar Enter el foco salta al contenido de la página sin recorrer todo el menú lateral.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+---
+
 ## 11. Resumen de resultados
 
 | # | Caso | Cumple | No cumple |
@@ -1118,8 +1222,16 @@ Observaciones: ___________________________________________
 | 10.6 | Solo vencimientos próximos en rojo | ☐ | ☐ |
 | 10.7 | El Kardex se pagina | ☐ | ☐ |
 | 10.8 | Avisos del Kardex correctos y al día | ☐ | ☐ |
+| 10.9 | Tablas usables desde el teléfono | ☐ | ☐ |
+| 10.10 | Botones de acción táctiles | ☐ | ☐ |
+| 10.11 | Señal de actividad al filtrar | ☐ | ☐ |
+| 10.12 | Sin acciones duplicadas por doble clic | ☐ | ☐ |
+| 10.13 | Sin conexión ≠ sin resultados | ☐ | ☐ |
+| 10.14 | El captcha no se duplica | ☐ | ☐ |
+| 10.15 | Interfaz toda en español | ☐ | ☐ |
+| 10.16 | Saltar la navegación con el teclado | ☐ | ☐ |
 
-**Total cumple:** ___ / 76
+**Total cumple:** ___ / 84
 
 ## 12. Hallazgos (bugs encontrados)
 

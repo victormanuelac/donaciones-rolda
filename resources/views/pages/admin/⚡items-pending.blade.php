@@ -166,7 +166,7 @@ new #[Title('Ítems pendientes de aprobación')] class extends Component {
                         @endif
 
                         <div class="flex flex-wrap items-end gap-3 pt-2">
-                            <flux:button size="sm" variant="primary" wire:click="approve({{ $item->id }})">
+                            <flux:button size="sm" variant="primary" wire:click="approve({{ $item->id }})" wire:loading.attr="disabled" wire:target="approve({{ $item->id }})">
                                 {{ __('Aprobar') }}
                             </flux:button>
 
@@ -179,7 +179,7 @@ new #[Title('Ítems pendientes de aprobación')] class extends Component {
                                     </flux:select>
                                     <flux:error name="consolidateInto.{{ $item->id }}" />
                                 </flux:field>
-                                <flux:button size="sm" wire:click="consolidate({{ $item->id }})">
+                                <flux:button size="sm" wire:click="consolidate({{ $item->id }})" wire:loading.attr="disabled" wire:target="consolidate({{ $item->id }})">
                                     {{ __('Consolidar') }}
                                 </flux:button>
                             </div>
@@ -189,7 +189,7 @@ new #[Title('Ítems pendientes de aprobación')] class extends Component {
                                     <flux:input wire:model="rejectionReason.{{ $item->id }}" size="sm" :placeholder="__('Motivo de rechazo')" />
                                     <flux:error name="rejectionReason.{{ $item->id }}" />
                                 </flux:field>
-                                <flux:button size="sm" variant="danger" wire:click="reject({{ $item->id }})">
+                                <flux:button size="sm" variant="danger" wire:click="reject({{ $item->id }})" wire:loading.attr="disabled" wire:target="reject({{ $item->id }})">
                                     {{ __('Rechazar') }}
                                 </flux:button>
                             </div>

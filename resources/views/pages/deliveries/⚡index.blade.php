@@ -69,40 +69,51 @@ new #[Title('Entregas y Seguimiento')] class extends Component {
         @endif
     </div>
 
-    <div class="card-brutal overflow-hidden">
+    {{-- Sin esto los filtros `.live` congelan la tabla en silencio durante el
+     viaje al servidor, sin ninguna señal de actividad (hallazgo M-1). --}}
+    <div wire:loading.flex wire:target="search, zoneFilter" class="items-center gap-2 mb-2 text-sm text-muted">
+        <flux:icon.loading variant="micro" />
+        {{ __('Actualizando...') }}
+    </div>
+
+    <div class="card-brutal overflow-hidden transition-opacity"
+         wire:loading.class="opacity-50 pointer-events-none"
+         wire:target="search, zoneFilter">
         @if ($this->deliveries->isEmpty())
             <div class="p-10 text-center">
                 <p class="font-display text-lg font-bold text-ink">{{ __('Sin entregas registradas') }}</p>
                 <p class="text-muted text-sm mt-1">{{ __('Registra la primera entrega a un hogar beneficiario.') }}</p>
             </div>
         @else
-            <table class="w-full">
-                <thead>
-                    <tr class="bg-surface-2 border-b-2 border-line">
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Fecha') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Hogar') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Ítem') }}</th>
-                        <th class="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Cantidad') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Bodega') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Entregado por') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($this->deliveries as $delivery)
-                        <tr wire:key="delivery-{{ $delivery->id }}" class="border-b border-line last:border-b-0">
-                            <td class="px-4 py-3 text-muted">{{ $delivery->release_date->format('d/m/Y') }}</td>
-                            <td class="px-4 py-3 text-ink">
-                                {{ $delivery->family?->head_full_name ?? '—' }}
-                                <span class="text-muted text-xs block">{{ $delivery->family?->neighborhood }}</span>
-                            </td>
-                            <td class="px-4 py-3 text-ink">{{ $delivery->stockEntry->masterItem->name }}</td>
-                            <td class="px-4 py-3 text-right text-ink font-bold">{{ $delivery->quantity_released }} {{ $delivery->stockEntry->masterItem->unit_of_measure }}</td>
-                            <td class="px-4 py-3 text-muted">{{ $delivery->warehouse->name }}</td>
-                            <td class="px-4 py-3 text-muted">{{ $delivery->releasedBy?->name ?? '—' }}</td>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[720px]">
+                    <thead>
+                        <tr class="bg-surface-2 border-b-2 border-line">
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Fecha') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Hogar') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Ítem') }}</th>
+                            <th scope="col" class="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Cantidad') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Bodega') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Entregado por') }}</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach ($this->deliveries as $delivery)
+                            <tr wire:key="delivery-{{ $delivery->id }}" class="border-b border-line last:border-b-0">
+                                <td class="px-4 py-3 text-muted">{{ $delivery->release_date->format('d/m/Y') }}</td>
+                                <td class="px-4 py-3 text-ink">
+                                    {{ $delivery->family?->head_full_name ?? '—' }}
+                                    <span class="text-muted text-xs block">{{ $delivery->family?->neighborhood }}</span>
+                                </td>
+                                <td class="px-4 py-3 text-ink">{{ $delivery->stockEntry->masterItem->name }}</td>
+                                <td class="px-4 py-3 text-right text-ink font-bold">{{ $delivery->quantity_released }} {{ $delivery->stockEntry->masterItem->unit_of_measure }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $delivery->warehouse->name }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $delivery->releasedBy?->name ?? '—' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
 
             <div class="p-4 border-t border-line">
                 {{ $this->deliveries->links() }}

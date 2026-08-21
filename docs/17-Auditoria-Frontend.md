@@ -21,7 +21,7 @@
 > | **Bloque 0** | ✅ **Aplicado** (21-ago-2026) | C-1, C-3 y A-5 cerrados. **C-2 solo en su parte de código**: falta servir el ambiente EC2 por HTTPS, que es tarea de infraestructura. |
 > | **Bloque 1** | ✅ **Aplicado** (21-ago-2026) | A-2, A-3 y M-8 cerrados. `/kardex` pasó de 1.346 consultas a 13 con 616 lotes. |
 > | Bloque 2 | ⬜ Abierto | C-4, A-1, M-2, M-3, M-4 (y la parte de infraestructura de C-2, de la que dependen) |
-> | Bloque 3 | ⬜ Abierto | A-4, M-1, M-5, M-6, M-7, B-1, B-2, B-3 |
+> | **Bloque 3** | ✅ **Aplicado** (21-ago-2026) | A-4, M-1, M-5, M-6, M-7, B-1, B-2 y B-3 cerrados. |
 >
 > Cada hallazgo corregido lleva la marca ✅ en su encabezado de la sección 3. Los que no la llevan siguen abiertos.
 
@@ -51,18 +51,18 @@
 
 | Vista / Módulo | Estado Funcional | Mapeo de Datos (BD/Front) | Rendimiento & Carga | Adaptabilidad Móvil | Soporte Offline |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Portal público** (`/`) | ⚠️ **Fallo silencioso de red**: si `fetch` lanza, no hay `catch` → muestra "No encontramos insumos" cuando el problema real es la conexión | ✅ XSS corregido — el popup se arma con nodos del DOM | ⚠️ Sin `AbortController`: respuestas fuera de orden pisan resultados nuevos | ✅ Buena (`grid-cols-1 lg:grid-cols-3`); ⚠️ `autofocus` abre el teclado al entrar | ➖ N/A por diseño (requiere red) |
+| **Portal público** (`/`) | ✅ Corregido — distingue "sin conexión" de "sin resultados" | ✅ XSS corregido — el popup se arma con nodos del DOM | ✅ Corregido — cada búsqueda aborta la anterior | ✅ Buena (`grid-cols-1 lg:grid-cols-3`); ⚠️ `autofocus` abre el teclado al entrar | ➖ N/A por diseño (requiere red) |
 | **Login / Registro / Auth** | ✅ OK | ✅ OK | ✅ Ligero | ✅ OK | ➖ N/A |
 | **Dashboard** | ✅ Corregido — conteos reales por rol | ✅ Corregido — agregados en SQL | ✅ Trivial | ✅ OK | ➖ |
-| **Kardex — índice** | ✅ OK | ✅ Corregido — `isExpiringSoon()` con signo explícito | ✅ Corregido — 13 consultas constantes, paginado de a 25 | 🔴 Tabla de 7 columnas dentro de `overflow-hidden` → **se recorta, no scrollea** | ➖ |
+| **Kardex — índice** | ✅ OK | ✅ Corregido — `isExpiringSoon()` con signo explícito | ✅ Corregido — 13 consultas constantes, paginado de a 25 | ✅ Corregido — scroll horizontal | ➖ |
 | **Kardex — entrada / salida / traslado** | ✅ Cuelgue corregido (respaldo de UUID); ⚠️ "Solicitar ítem nuevo" (Livewire) muere en silencio sin red, en una pantalla rotulada "funciona sin conexión" | ⚠️ `quantity` viaja como cadena; la guarda `!quantity` no bloquea `"0"` | ✅ Ligero | ✅ `max-w-2xl` correcto | ✅ **Lo mejor de la app**: cola Dexie + reintento; 🔴 payload sin cifrar |
 | **Kardex — ficha / conteo / vencimientos** | ✅ OK | ✅ OK | ✅ Corregido — saldo precargado | 🔴 Tabla recortada (`overflow-hidden`) | ➖ |
 | **Censo (wizard 6 pasos)** | ✅ Mismo cuelgue corregido; ✅ fallback GPS → pin manual bien resuelto | ⚠️ Payload plano, sin validación de cliente entre pasos | ✅ Fuga de memoria corregida (`destroy()`) | ✅ Diseñado para móvil | ✅ Cola + `syncNow()`; 🔴 **documentos y teléfonos en claro en IndexedDB** |
-| **Beneficiarios — índice** | ✅ OK, paginado (20) | ✅ Correcto | ⚠️ Sin `wire:loading` en 3 filtros `.live` → congelación muda | 🔴 Tabla de 6 columnas recortada | ➖ N/A (PII, decisión correcta) |
+| **Beneficiarios — índice** | ✅ OK, paginado (20) | ✅ Correcto | ✅ Corregido — indicador de carga | ✅ Corregido — scroll horizontal | ➖ N/A (PII, decisión correcta) |
 | **Beneficiarios — detalle / perfil** | ✅ OK | ⚠️ `chronicConditions`/`currentSymptoms` **sin regla de validación** → texto ilimitado hacia una columna TEXT | ⚠️ `save()` = 2 `update()` + `refresh()` + `fresh()` **sin transacción**: si falla el motor de recomendaciones, el score queda persistido y las recomendaciones no | ✅ Formulario de una columna, correcto | ➖ N/A (correcto) |
 | **Entregas — registro** | ✅ OK, con `wire:loading` (1 de las solo 4 vistas que lo tienen) | ✅ Correcto | ✅ Corregido — saldo precargado en una consulta | ✅ OK | ➖ N/A (correcto y documentado) |
 | **Entregas — listado** | ✅ OK | ✅ OK | ✅ Corregido | 🔴 Tabla recortada | ➖ |
-| **Admin — usuarios / ítems / bodegas** | ⚠️ Sin `wire:loading` ni `disabled`: doble clic en "Enviar solicitud" crea **dos solicitudes duplicadas** | ✅ Correcto | ✅ Volumen bajo | 🔴 Tabla recortada; ⚠️ botones `size="sm"` bajo el mínimo táctil de 48px | ➖ |
+| **Admin — usuarios / ítems / bodegas** | ✅ Corregido — botones deshabilitados mientras la acción está en vuelo | ✅ Correcto | ✅ Volumen bajo | ✅ Corregido — scroll horizontal y área táctil mínima | ➖ |
 | **Ajustes / 2FA** | ✅ OK (starter kit, buena accesibilidad: `aria-expanded`, `aria-controls`, `role="list"`) | ✅ OK | ✅ OK | ✅ OK | ➖ |
 
 ---
@@ -164,11 +164,13 @@ El proyecto ya usa la forma correcta en `app/Console/Commands/Kardex/UpdateStock
 
 > **✅ Corregido (21-ago-2026).** La lógica se movió a `StockEntry::isExpiringSoon()`, con el signo explícito y el umbral configurable. `tests/Feature/Kardex/StockEntryExpiryTest.php` fija los bordes (30 y 31 días, ya vencido, sin fecha) para que no vuelva.
 
-### 🔴 [Alta] A-4 · Ninguna tabla es usable en móvil — **[verificado]**
+### ✅ [Alta] A-4 · Ninguna tabla es usable en móvil — **[verificado — CORREGIDO]**
 
 Las **10** tablas de datos del proyecto van dentro de `<div class="card-brutal overflow-hidden">`. `overflow-hidden` **recorta**; no genera scroll. Por debajo de 480px las columnas de la derecha (incluido el botón de acción de cada fila) quedan inalcanzables, sin scroll horizontal ni vista alternativa en tarjetas.
 
-Afecta a Kardex, Beneficiarios, Entregas, Admin y Vencimientos.
+Afectaba a Kardex, Beneficiarios, Entregas, Admin y Vencimientos.
+
+> **✅ Corregido (21-ago-2026).** Las 7 tablas van dentro de un `overflow-x-auto` propio, con `min-w-[720px]` para que las columnas se desplacen en vez de aplastarse. El contenedor de paginación queda fuera del scroll, fijo.
 
 ### ✅ [Alta] A-5 · El dashboard contradice la base de datos — **[verificado — CORREGIDO]**
 
@@ -176,9 +178,11 @@ Afecta a Kardex, Beneficiarios, Entregas, Admin y Vencimientos.
 
 > **✅ Corregido (21-ago-2026).** Ahora es una página Livewire (`resources/views/pages/⚡dashboard.blade.php`) con conteos agregados en SQL, y las secciones filtradas por lo que el rol puede ver. Cubierto por `tests/Feature/DashboardTest.php` y los casos QA 10.1 y 10.2.
 
-### 🟡 [Media] M-1 · Estados de carga prácticamente ausentes
+### ✅ [Media] M-1 · Estados de carga prácticamente ausentes — **CORREGIDO**
 
-Solo **4 de 22** vistas usan `wire:loading`. Cero skeletons en todo el proyecto. Cada filtro `.live` (Kardex, y los 3 de Beneficiarios) congela la interfaz en silencio durante el roundtrip al servidor, sin ninguna indicación de actividad.
+Solo **4 de 22** vistas usaban `wire:loading`. Cada filtro `.live` (Kardex, y los 3 de Beneficiarios) congelaba la interfaz en silencio durante el roundtrip al servidor.
+
+> **✅ Corregido (21-ago-2026).** Las 4 pantallas con filtros `.live` (Kardex, Beneficiarios, Entregas, Ficha Kardex) muestran un indicador "Actualizando..." y atenúan la tabla mientras dura la petición.
 
 ### 🟡 [Media] M-2 · No es una PWA instalable — **[verificado]**
 
@@ -192,17 +196,23 @@ No hay listener del evento `offline` en ninguna parte, ni banner de estado. `pen
 
 `public/sw.js` cachea **toda** respuesta GET exitosa, incluidas páginas autenticadas con PII de censo, sin tope de tamaño, sin evento `install`/precache, sin `skipWaiting`/`clients.claim` y sin página de respaldo offline (navegar a una ruta nunca visitada devuelve `undefined` a `respondWith`, produciendo un error de red crudo). El caché sobrevive al cierre de sesión.
 
-### 🟡 [Media] M-5 · Envío duplicado en modales Livewire
+### ✅ [Media] M-5 · Envío duplicado en modales Livewire — **CORREGIDO**
 
-`requestNewItem` y los botones de aprobar/rechazar del panel de administración no tienen `wire:loading.attr="disabled"`. Un doble clic genera dos solicitudes duplicadas en la cola de revisión.
+`requestNewItem` y los botones de aprobar/rechazar del panel de administración no tenían `wire:loading.attr="disabled"`. Un doble clic generaba dos solicitudes duplicadas en la cola de revisión.
 
-### 🟡 [Media] M-6 · Turnstile se duplica al cerrar con ESC
+> **✅ Corregido (21-ago-2026).** Los 8 botones que mutan datos (solicitar ítem, aprobar, rechazar, consolidar, guardar bodega, agregar integrante, resolver alerta) se deshabilitan mientras la acción está en vuelo, con `wire:target` apuntando al método concreto.
 
-`resources/views/pages/public/search.blade.php:158` define `x-on:close`, que limpia el token pero **no llama a `window.turnstile.remove()`** (eso solo ocurre dentro de `closeContact()`). Cerrar el modal con ESC o clic en el backdrop y volver a abrirlo apila un segundo widget de captcha en el mismo contenedor.
+### ✅ [Media] M-6 · Turnstile se duplica al cerrar con ESC — **CORREGIDO**
 
-### 🟡 [Media] M-7 · Carrera de resultados en el buscador público
+`resources/views/pages/public/search.blade.php:158` definía `x-on:close`, que limpiaba el token pero **no llamaba a `window.turnstile.remove()`** (eso solo ocurría dentro de `closeContact()`). Cerrar el modal con ESC o clic en el backdrop y volver a abrirlo apilaba un segundo widget de captcha en el mismo contenedor.
 
-`runSearch()` no usa `AbortController` ni una guarda de secuencia: con el debounce de 350ms y una red lenta, la respuesta de una búsqueda anterior puede pisar la de una posterior.
+> **✅ Corregido (21-ago-2026).** La limpieza se unificó en `resetContact()`, invocada tanto por `closeContact()` como por el `x-on:close` del modal.
+
+### ✅ [Media] M-7 · Carrera de resultados en el buscador público — **CORREGIDO**
+
+`runSearch()` no usaba `AbortController` ni una guarda de secuencia: con el debounce de 350ms y una red lenta, la respuesta de una búsqueda anterior podía pisar la de una posterior.
+
+> **✅ Corregido (21-ago-2026).** Cada búsqueda aborta la anterior. Además se separó **"sin resultados" de "sin conexión"**: antes un fallo de red caía en el estado vacío y le decía a la persona "no hay insumos disponibles" cuando en realidad se había caído la red — en una emergencia esa confusión es grave. Ahora muestra un aviso propio con botón de reintentar.
 
 ### ✅ [Media] M-8 · Fugas de memoria en los mapas Leaflet — **CORREGIDO**
 
@@ -210,17 +220,23 @@ Ni `resources/js/public/results-map.js` ni `resources/js/census/map.js` destruí
 
 > **✅ Corregido (21-ago-2026).** Ambos componentes Alpine implementan `destroy()`: retiran el listener global y llaman a `map.remove()`.
 
-### 🟢 [Baja] B-1 · Interfaz mezclada inglés/español
+### ✅ [Baja] B-1 · Interfaz mezclada inglés/español — **CORREGIDO**
 
-No existe el directorio `lang/`. Con `APP_LOCALE=es`, `__()` devuelve la clave literal: el sidebar muestra **"Platform"**, **"Dashboard"**, **"Settings"** y **"Log out"** en medio de una interfaz íntegramente en español.
+No existía el directorio `lang/`. Con `APP_LOCALE=es`, `__()` devolvía la clave literal: el sidebar mostraba **"Platform"**, **"Dashboard"**, **"Settings"** y **"Log out"** en medio de una interfaz íntegramente en español.
 
-### 🟢 [Baja] B-2 · Landmarks y navegación por teclado
+> **✅ Corregido (21-ago-2026).** `lang/es.json` traduce las ~100 cadenas del starter kit (sidebar, autenticación, ajustes, 2FA, claves de acceso). No hizo falta tocar ninguna vista: las llamadas a `__()` se resuelven solas.
 
-El layout autenticado no tiene `<main>` ni *skip link* — hay que tabular todo el sidebar en cada página. Las celdas `<th>` no declaran `scope="col"`. (El módulo de ajustes heredado del starter kit, en cambio, está correctamente anotado.)
+### ✅ [Baja] B-2 · Landmarks y navegación por teclado — **CORREGIDO**
 
-### 🟢 [Baja] B-3 · Áreas táctiles
+El layout autenticado no tenía `<main>` ni *skip link* — había que tabular todo el sidebar en cada página. Las celdas `<th>` no declaraban `scope="col"`.
 
-22 botones `size="sm"` en las columnas de acción de las tablas quedan por debajo del mínimo recomendado de 48×48px para uso táctil.
+> **✅ Corregido (21-ago-2026).** Los dos layouts autenticados (sidebar y header) tienen `<main id="contenido">` y un enlace "Saltar al contenido" visible solo al enfocarlo con el teclado. Las 7 tablas declaran `scope="col"`.
+
+### ✅ [Baja] B-3 · Áreas táctiles — **CORREGIDO**
+
+22 botones `size="sm"` en las columnas de acción de las tablas quedaban por debajo del mínimo recomendado para uso táctil.
+
+> **✅ Corregido (21-ago-2026).** Una regla acotada a `@media (pointer: coarse)` fija 44×44px mínimos a los botones dentro de tablas — se resolvió en el CSS y no botón por botón, y no engorda nada en escritorio.
 
 ### 🟢 [Baja] B-4 · `nearestZoneLabel` sin distancia máxima
 
@@ -293,7 +309,7 @@ Alguien que busque desde Cali recibe como etiqueta el nombre de un barrio de Rol
 11. **M-2 · Manifest y meta tags.** Crear `public/manifest.json` con iconos maskable, `theme-color: #18181A`, `display: standalone` y `start_url: /kardex`.
 12. **M-4 · Endurecer el Service Worker.** Evento `install` con precache del shell, `skipWaiting`/`clients.claim`, **excluir del caché las rutas autenticadas con PII** (`/censo/*`, `/beneficiarios/*`) — cachear solo el HTML del formulario vacío, nunca respuestas con datos —, limpiar el caché al cerrar sesión y añadir una página de respaldo offline.
 
-### Bloque 3 — UI/UX y accesibilidad (~2 días) — ⬜ abierto
+### Bloque 3 — ✅ Aplicado el 21-ago-2026
 
 13. **A-4 · Envolver las 10 tablas** en `overflow-x-auto` y valorar una variante de tarjetas apiladas por debajo del breakpoint `sm:` para Kardex y Beneficiarios, que son las que se consultan en campo.
 14. **M-1 · Estados de carga.** `wire:loading.class="opacity-50"` en los contenedores de tabla y `wire:loading.attr="disabled"` en todos los botones de acción — resuelve de paso **M-5**.
@@ -317,9 +333,20 @@ Ese es el hilo conductor del informe completo, y sugiere la contramedida estruct
 |---|---|---|---|
 | ~~1~~ ✅ | Bloque 0 | ~1 día | C-1, C-3, A-5 cerrados; C-2 solo en código (falta el HTTPS del ambiente) |
 | ~~2~~ ✅ | Bloque 1 | ~2 días | A-2, A-3, M-8 cerrados |
-| 3 | Bloque 2 | ~3 días | C-2 (completo), C-4, A-1, M-2, M-3, M-4 |
-| 4 | Bloque 3 | ~2 días | A-4, M-1, M-5, M-6, M-7, B-1, B-2, B-3 |
+| **3** ⬅️ | **Bloque 2 — lo único que queda** | ~3 días | C-2 (completo), C-4, A-1, M-2, M-3, M-4 |
+| ~~4~~ ✅ | Bloque 3 | ~2 días | A-4, M-1, M-5, M-6, M-7, B-1, B-2, B-3 cerrados |
 
 El Bloque 0 era el único urgente y ya está aplicado: cerró el XSS del portal público, que era el único hallazgo con exposición a usuarios anónimos.
 
-Con el Bloque 1 también aplicado, la acción pendiente de mayor palanca es **poner HTTPS en el ambiente EC2**: no es código, cierra lo que queda de C-2 y desbloquea el Bloque 2 completo (cifrar la PII de la cola offline necesita WebCrypto, que exige contexto seguro).
+Con los Bloques 0, 1 y 3 aplicados, **solo queda abierto el Bloque 2** (offline e IndexedDB), y su camino crítico no es código: **poner HTTPS en el ambiente EC2**. Sin contexto seguro no hay Service Worker, ni Cache API, ni WebCrypto — es decir, no se puede cerrar C-2 ni empezar C-4 (cifrar la PII de la cola offline), que es el hallazgo de cumplimiento LSPP más serio que queda.
+
+### Estado por eje tras los tres bloques
+
+| Eje | Antes | Ahora | Qué falta para subirlo |
+| :--- | :---: | :---: | :--- |
+| Funcionalidad y navegación | 62 | ~85 | Cobertura de navegador (Pest v4 / Dusk) |
+| UX / Consistencia visual | 58 | ~85 | Skeletons; auditoría de contraste real |
+| Rendimiento | 35 | ~85 | Medición real de Core Web Vitals |
+| Soporte Offline | 45 | ~50 | **Todo el Bloque 2**, que depende del HTTPS |
+
+Las cifras "ahora" son estimaciones sobre los mismos criterios de la evaluación inicial, no una segunda auditoría completa: los ejes se reevaluaron solo en lo que tocaron las correcciones.

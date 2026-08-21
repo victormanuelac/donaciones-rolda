@@ -80,9 +80,16 @@
 
                     <p x-show="loading" x-cloak class="text-muted text-sm">{{ __('Buscando...') }}</p>
 
-                    <p x-show="searched && !loading && results.length === 0" x-cloak class="text-muted text-sm">
+                    {{-- "Sin resultados" y "sin conexión" son cosas distintas: mezclarlas
+                         le decía a la gente que no hay insumos cuando se cayó la red. --}}
+                    <p x-show="searched && !loading && !searchError && results.length === 0" x-cloak class="text-muted text-sm">
                         {{ __('No encontramos insumos disponibles con esos criterios. Intenta con otra palabra o quita algún filtro.') }}
                     </p>
+
+                    <div x-show="searchError" x-cloak class="card-brutal border-danger p-4">
+                        <p class="text-sm text-ink" x-text="searchError"></p>
+                        <flux:button size="sm" class="mt-3" x-on:click="runSearch()">{{ __('Reintentar') }}</flux:button>
+                    </div>
 
                     <template x-for="item in results" :key="item.master_item_id">
                         <div class="card-brutal p-4">
@@ -155,7 +162,7 @@
                 </div>
             </div>
 
-            <flux:modal name="contact-unlock-modal" class="max-w-md" x-on:close="turnstileToken = ''; contactResult = null">
+            <flux:modal name="contact-unlock-modal" class="max-w-md" x-on:close="resetContact()">
                 <div class="space-y-6">
                     <flux:heading size="lg">{{ __('Contactar') }} <span x-text="selectedWarehouseName"></span></flux:heading>
 

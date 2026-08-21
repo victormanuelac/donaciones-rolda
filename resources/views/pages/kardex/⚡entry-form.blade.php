@@ -159,7 +159,7 @@ new #[Title('Registrar entrada — Kardex')] class extends Component {
 
             <div class="flex justify-end gap-3">
                 <flux:button wire:click="$set('showRequestItemModal', false)">{{ __('Cancelar') }}</flux:button>
-                <flux:button variant="primary" wire:click="requestNewItem">{{ __('Enviar solicitud') }}</flux:button>
+                <flux:button variant="primary" wire:click="requestNewItem" wire:loading.attr="disabled" wire:target="requestNewItem">{{ __('Enviar solicitud') }}</flux:button>
             </div>
         </div>
     </flux:modal>

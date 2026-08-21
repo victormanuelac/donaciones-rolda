@@ -133,6 +133,8 @@ feature/xxx  →  PR (squash-merge, firmado)  →  test  →  (CI/CD a EC2 de pr
 
 ## 5. Ambiente de pruebas en la instancia EC2
 
+> 📘 **Para desplegar, usa [`docs/18-Guia-de-Despliegue-Test-y-Produccion.md`](docs/18-Guia-de-Despliegue-Test-y-Produccion.md).** Es la guía normativa vigente y cubre los dos ambientes: aprovisionamiento, Cloudflare, CI/CD, respaldos, cumplimiento y checklist de salida a producción. Esta sección se conserva como referencia rápida del arranque manual en pruebas.
+
 Mientras no exista un pipeline de despliegue automatizado (ECS/Terraform, ver `docs/05-Analisis-Infraestructura-AWS.md` para el diseño objetivo a futuro), el ambiente de pruebas en EC2 se levanta con el **mismo flujo de Docker/Sail que en local** — es la vía más simple hoy para tener un ambiente compartido y probado por el equipo. Corresponde a la rama `test` del flujo descrito arriba.
 
 ### 5.1 Preparar la instancia (una sola vez)

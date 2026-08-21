@@ -136,9 +136,10 @@ No implementes manejo de datos de beneficiarios/usuarios sin considerar estas re
 
 ### Despliegue e infraestructura
 
-- **Ambiente de pruebas (actual):** instancia EC2 corriendo Docker/Sail directo — ver `README.md`, sección "Ambiente de pruebas en la instancia EC2". Es deliberadamente simple porque el pipeline ECS/Terraform todavía no existe.
+- **Guía normativa de despliegue: `docs/18-Guia-de-Despliegue-Test-y-Produccion.md`** (21-ago-2026) — es la fuente vigente para poner la app en línea en cualquiera de los dos ambientes, y manda sobre lo que digan el README o el doc 05. Incluye la deuda técnica que bloquea producción (`trustProxies` sin configurar, retención LSPP sin implementar).
+- **Ambiente de pruebas (actual):** instancia EC2 corriendo Docker/Sail directo. Es deliberadamente simple porque el pipeline ECS/Terraform todavía no existe.
 - **Producción (objetivo, no implementado aún):** AWS: Cloudflare (CDN/WAF/DDoS) → ALB → ECS Fargate (API + queue workers, autoscaling 2-4 tasks) → RDS Aurora MySQL Multi-AZ + ElastiCache Redis, en VPC con subnets públicas/privadas por capa. Detalle completo (security groups, alarms, DR) en `docs/13-Diagramas-Arquitectura.md` y `docs/05-Analisis-Infraestructura-AWS.md` (cifra de costo de este último desactualizada, ver tabla de vigencia).
-- **CI/CD:** GitHub Actions — `.github/workflows/tests.yml` corre en PRs y push a `main`/`test` (Pint, Pest, PHPStan). No existe todavía `deploy.yml`; el despliegue al ambiente de pruebas EC2 es manual (`git pull` + rebuild, ver README) hasta que se automatice.
+- **CI/CD:** GitHub Actions — `.github/workflows/tests.yml` corre en PRs y push a `main`/`test` (Pint, Pest, PHPStan). **`deploy.yml` todavía no existe**: el doc 18 lo especifica (automático a `test`, manual con aprobación a producción, sobre runners autoalojados) pero el archivo no está creado y el despliegue sigue siendo manual por SSH. Ojo: el repo es público, así que ningún workflow que corra en un runner autoalojado puede dispararse por `pull_request` — ver doc 18 §7.2.
 
 ## Contradicciones conocidas sin resolver (transparencia)
 

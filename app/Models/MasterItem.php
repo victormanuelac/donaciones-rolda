@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MasterItemStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,12 +17,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $description
  * @property bool $requires_cold_chain
  * @property int|null $reorder_point
- * @property string $status
+ * @property MasterItemStatus $status
  * @property string|null $rejection_reason
+ * @property int|null $consolidated_into_id
  */
 #[Fillable([
     'category_id', 'created_by_user_id', 'name', 'unit_of_measure', 'description',
-    'requires_cold_chain', 'reorder_point', 'status', 'rejection_reason',
+    'requires_cold_chain', 'reorder_point', 'status', 'rejection_reason', 'consolidated_into_id',
 ])]
 class MasterItem extends Model
 {
@@ -29,6 +31,7 @@ class MasterItem extends Model
     {
         return [
             'requires_cold_chain' => 'boolean',
+            'status' => MasterItemStatus::class,
         ];
     }
 
@@ -46,6 +49,30 @@ class MasterItem extends Model
     public function stockEntries(): HasMany
     {
         return $this->hasMany(StockEntry::class);
+    }
+
+    /**
+     * @return BelongsTo<MasterItem, $this>
+     */
+    public function consolidatedInto(): BelongsTo
+    {
+        return $this->belongsTo(MasterItem::class, 'consolidated_into_id');
+    }
+
+    /**
+     * @return HasMany<MasterItem, $this>
+     */
+    public function duplicates(): HasMany
+    {
+        return $this->hasMany(MasterItem::class, 'consolidated_into_id');
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
     /**

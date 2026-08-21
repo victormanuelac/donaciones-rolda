@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Actions\Kardex\RegisterStockCountAction;
+use App\Actions\MasterItems\RequestNewMasterItemAction;
 use App\Models\Category;
 use App\Models\GeographicZone;
 use App\Models\MasterItem;
@@ -31,6 +32,7 @@ class KardexDemoSeeder extends Seeder
 
         $entries = $this->seedStockEntries($items, $centro, $guayabal, $operator);
         $this->seedCounts($entries, $operator);
+        $this->seedPendingItemRequest($operator);
 
         // Genera automáticamente las alertas de vencimiento de los lotes que
         // sembramos con fecha próxima, y corrige estados (expired/withdrawn)
@@ -223,6 +225,22 @@ class KardexDemoSeeder extends Seeder
             'stock_entry_id' => $linterna->id,
             'counted_quantity' => $linterna->availableQuantity() - 1,
             'notes' => 'Faltante detectado en conteo mensual de bodega.',
+        ], $operator);
+    }
+
+    /**
+     * Solicitud de ítem nuevo de ejemplo (Módulo 4), para que la cola de
+     * revisión del admin (`/admin/items-pendientes`) no esté vacía.
+     */
+    private function seedPendingItemRequest(User $operator): void
+    {
+        $medicinas = Category::where('name', 'Medicinas')->firstOrFail();
+
+        (new RequestNewMasterItemAction)->handle([
+            'category_id' => $medicinas->id,
+            'name' => 'Ibuprofeno 400mg',
+            'unit_of_measure' => 'cajas',
+            'description' => 'Se necesita para el botiquín de Bodega Centro, no está en el catálogo.',
         ], $operator);
     }
 }

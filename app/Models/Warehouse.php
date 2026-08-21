@@ -60,4 +60,26 @@ class Warehouse extends Model
     {
         return $this->hasMany(WarehouseAssignment::class);
     }
+
+    /**
+     * Unidades que ocupan espacio físico ahora mismo: existencias disponibles
+     * y también vencidas (siguen ocupando la bodega hasta que alguien las dé
+     * de baja), sin contar lotes ya retirados.
+     */
+    public function occupiedUnits(): int
+    {
+        return (int) $this->stockEntries()
+            ->whereIn('status', ['available', 'expired'])
+            ->get()
+            ->sum(fn (StockEntry $entry) => $entry->availableQuantity());
+    }
+
+    public function isOverCapacity(): bool
+    {
+        if ($this->max_capacity_units === null) {
+            return false;
+        }
+
+        return $this->occupiedUnits() > $this->max_capacity_units;
+    }
 }

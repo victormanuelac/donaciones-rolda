@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Kardex\RegisterStockCountAction;
 use App\Models\Category;
 use App\Models\GeographicZone;
 use App\Models\MasterItem;
@@ -28,7 +29,8 @@ class KardexDemoSeeder extends Seeder
         [$centro, $guayabal] = $this->seedWarehouses();
         $operator = $this->seedOperator($centro, $guayabal);
 
-        $this->seedStockEntries($items, $centro, $guayabal, $operator);
+        $entries = $this->seedStockEntries($items, $centro, $guayabal, $operator);
+        $this->seedCounts($entries, $operator);
 
         // Genera automáticamente las alertas de vencimiento de los lotes que
         // sembramos con fecha próxima, y corrige estados (expired/withdrawn)
@@ -96,6 +98,7 @@ class KardexDemoSeeder extends Seeder
             'address' => 'Calle 10 #5-20, Roldanillo',
             'contact_person_name' => 'Coordinador de Bodega Centro',
             'contact_phone' => '3120000001',
+            'max_capacity_units' => 130, // deliberadamente por debajo del total sembrado (144), para demostrar la alerta de sobrecupo
         ]);
 
         $guayabal = Warehouse::create([
@@ -125,8 +128,9 @@ class KardexDemoSeeder extends Seeder
 
     /**
      * @param  array<string, MasterItem>  $items
+     * @return array<string, StockEntry>
      */
-    private function seedStockEntries(array $items, Warehouse $centro, Warehouse $guayabal, User $operator): void
+    private function seedStockEntries(array $items, Warehouse $centro, Warehouse $guayabal, User $operator): array
     {
         // [bodega, ítem, cantidad, fecha de vencimiento (null = sin vencimiento próximo), lote]
         $entries = [
@@ -193,5 +197,32 @@ class KardexDemoSeeder extends Seeder
             'received_by_name' => 'Comedor comunitario Guayabal',
             'release_date' => now()->subHours(6),
         ]);
+
+        return $created;
+    }
+
+    /**
+     * Conteos físicos de ejemplo (Kardex — cycle counting): uno sin
+     * diferencia (queda registrado, sin mover inventario) y uno con faltante
+     * (genera automáticamente la salida de ajuste vía RegisterStockCountAction),
+     * para que la ficha Kardex y el conteo tengan datos reales que mostrar.
+     *
+     * @param  array<string, StockEntry>  $entries
+     */
+    private function seedCounts(array $entries, User $operator): void
+    {
+        $action = new RegisterStockCountAction;
+
+        $action->handle([
+            'stock_entry_id' => $entries['Bodega Centro-Arroz']->id,
+            'counted_quantity' => $entries['Bodega Centro-Arroz']->availableQuantity(),
+        ], $operator);
+
+        $linterna = $entries['Bodega Centro-Linterna de mano'];
+        $action->handle([
+            'stock_entry_id' => $linterna->id,
+            'counted_quantity' => $linterna->availableQuantity() - 1,
+            'notes' => 'Faltante detectado en conteo mensual de bodega.',
+        ], $operator);
     }
 }

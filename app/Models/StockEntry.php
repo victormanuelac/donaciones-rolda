@@ -24,11 +24,12 @@ use Illuminate\Support\Carbon;
  * @property string|null $photo_path
  * @property string|null $client_uuid
  * @property int|null $transferred_from_stock_entry_id
+ * @property int|null $adjustment_stock_count_id
  */
 #[Fillable([
     'master_item_id', 'warehouse_id', 'registered_by_user_id', 'confirmed_by_user_id',
     'quantity', 'lot_number', 'expiry_date', 'received_date', 'status', 'notes', 'photo_path', 'client_uuid',
-    'transferred_from_stock_entry_id',
+    'transferred_from_stock_entry_id', 'adjustment_stock_count_id',
 ])]
 class StockEntry extends Model
 {
@@ -79,6 +80,22 @@ class StockEntry extends Model
     public function transferredFrom(): BelongsTo
     {
         return $this->belongsTo(StockEntry::class, 'transferred_from_stock_entry_id');
+    }
+
+    /**
+     * @return HasMany<StockCount, $this>
+     */
+    public function counts(): HasMany
+    {
+        return $this->hasMany(StockCount::class);
+    }
+
+    /**
+     * @return BelongsTo<StockCount, $this>
+     */
+    public function adjustmentStockCount(): BelongsTo
+    {
+        return $this->belongsTo(StockCount::class, 'adjustment_stock_count_id');
     }
 
     /**

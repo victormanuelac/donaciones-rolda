@@ -2,6 +2,7 @@
 
 use App\Models\MasterItem;
 use App\Models\StockEntry;
+use App\Models\Warehouse;
 use App\Services\Kardex\StockProjectionService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -71,6 +72,14 @@ new #[Title('Kardex — Inventario')] class extends Component {
             ->sortBy('days_remaining')
             ->values();
     }
+
+    #[Computed]
+    public function overCapacityWarehouses()
+    {
+        return $this->warehouses
+            ->when($this->warehouseFilter, fn ($collection) => $collection->where('id', $this->warehouseFilter))
+            ->filter(fn (Warehouse $warehouse) => $warehouse->isOverCapacity());
+    }
 }; ?>
 
 <section class="w-full">
@@ -83,6 +92,7 @@ new #[Title('Kardex — Inventario')] class extends Component {
             <flux:button :href="route('kardex.entry')" variant="primary" icon="plus" wire:navigate>{{ __('Registrar entrada') }}</flux:button>
             <flux:button :href="route('kardex.exit')" icon="minus" wire:navigate>{{ __('Registrar salida') }}</flux:button>
             <flux:button :href="route('kardex.transfer')" icon="arrows-right-left" wire:navigate>{{ __('Trasladar') }}</flux:button>
+            <flux:button :href="route('kardex.count')" icon="clipboard-document-check" wire:navigate>{{ __('Conteo físico') }}</flux:button>
             <flux:button :href="route('kardex.expiry-alerts')" icon="exclamation-triangle" wire:navigate>{{ __('Vencimientos') }}</flux:button>
         </div>
     </div>
@@ -103,6 +113,15 @@ new #[Title('Kardex — Inventario')] class extends Component {
                 {{ $this->projectedStockouts->map(fn (array $row) => $row['days_remaining'] <= 0
                     ? "{$row['item']->name} ({$row['item']->unit_of_measure}): ".__('agotado')
                     : "{$row['item']->name}: ~".__(':days días', ['days' => $row['days_remaining']]))->implode(' · ') }}
+            </flux:callout.text>
+        </flux:callout>
+    @endif
+
+    @if ($this->overCapacityWarehouses->isNotEmpty())
+        <flux:callout variant="warning" icon="archive-box-x-mark" class="mb-4">
+            <flux:callout.heading>{{ __('Bodegas por encima de su capacidad máxima') }}</flux:callout.heading>
+            <flux:callout.text>
+                {{ $this->overCapacityWarehouses->map(fn (Warehouse $warehouse) => "{$warehouse->name}: {$warehouse->occupiedUnits()} / {$warehouse->max_capacity_units}")->implode(' · ') }}
             </flux:callout.text>
         </flux:callout>
     @endif
@@ -135,6 +154,7 @@ new #[Title('Kardex — Inventario')] class extends Component {
                         <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Vencimiento') }}</th>
                         <th class="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Disponible') }}</th>
                         <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Estado') }}</th>
+                        <th class="px-4 py-3"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -158,6 +178,9 @@ new #[Title('Kardex — Inventario')] class extends Component {
                             <td class="px-4 py-3 text-right text-ink font-bold">{{ $entry->availableQuantity() }} {{ $entry->masterItem->unit_of_measure }}</td>
                             <td class="px-4 py-3">
                                 <flux:badge :color="$entry->status->value === 'available' ? 'green' : 'zinc'">{{ $entry->status->label() }}</flux:badge>
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <flux:button size="sm" :href="route('kardex.ledger', ['itemId' => $entry->master_item_id])" wire:navigate>{{ __('Ver ficha') }}</flux:button>
                             </td>
                         </tr>
                     @endforeach

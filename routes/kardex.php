@@ -8,6 +8,8 @@ Route::middleware(['auth', 'role:operator,coordinator,admin'])->prefix('kardex')
     Route::livewire('entrada', 'pages::kardex.entry-form')->name('entry');
     Route::livewire('salida', 'pages::kardex.exit-form')->name('exit');
     Route::livewire('traslado', 'pages::kardex.transfer-form')->name('transfer');
+    Route::livewire('conteo', 'pages::kardex.count')->name('count');
+    Route::livewire('ficha', 'pages::kardex.ledger')->name('ledger');
     Route::livewire('vencimientos', 'pages::kardex.expiry-alerts')->name('expiry-alerts');
 
     Route::post('entradas/sync', [KardexSyncController::class, 'entries'])->name('entries.sync');

@@ -149,6 +149,7 @@ new #[Title('Bodegas / Centros de Acopio')] class extends Component {
                         <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Nombre') }}</th>
                         <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Zona') }}</th>
                         <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Contacto') }}</th>
+                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Ocupación') }}</th>
                         <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Estado') }}</th>
                         <th class="px-4 py-3"></th>
                     </tr>
@@ -164,6 +165,15 @@ new #[Title('Bodegas / Centros de Acopio')] class extends Component {
                             <td class="px-4 py-3 text-muted">
                                 {{ $warehouse->contact_person_name }}
                                 <span class="block text-xs">{{ $warehouse->contact_phone }}</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                @if ($warehouse->max_capacity_units)
+                                    <span @class(['font-bold' => $warehouse->isOverCapacity(), 'text-danger' => $warehouse->isOverCapacity(), 'text-muted' => ! $warehouse->isOverCapacity()])>
+                                        {{ $warehouse->occupiedUnits() }} / {{ $warehouse->max_capacity_units }}
+                                    </span>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
                             </td>
                             <td class="px-4 py-3">
                                 <flux:badge :color="$warehouse->is_active ? 'green' : 'zinc'">

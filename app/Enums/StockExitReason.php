@@ -41,4 +41,22 @@ enum StockExitReason: string
     {
         return in_array($this, [self::Loss, self::Damage, self::ExpiredDiscard, self::InventoryAdjustment], true);
     }
+
+    /**
+     * Motivos que representan demanda real, para proyectar el ritmo de consumo:
+     * se excluyen los traslados (no bajan el total del sistema, solo lo mueven)
+     * y las bajas por pérdida, daño o vencimiento (no reflejan consumo).
+     *
+     * Vive en el enum porque lo comparten `StockProjectionService` (proyección
+     * por ítem) y `KardexAlertsService` (agregado de todos los ítems a la vez).
+     *
+     * @return array<int, string>
+     */
+    public static function demandValues(): array
+    {
+        return array_map(
+            fn (self $reason) => $reason->value,
+            [self::Donation, self::SubsidizedSale, self::EmergencyAssistance, self::Other],
+        );
+    }
 }

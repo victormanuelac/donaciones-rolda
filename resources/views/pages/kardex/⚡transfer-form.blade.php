@@ -17,6 +17,7 @@ new #[Title('Trasladar stock — Kardex')] class extends Component {
     {
         return StockEntry::query()
             ->with(['masterItem', 'warehouse'])
+            ->withAvailableQuantity()
             ->where('status', 'available')
             ->whereIn('warehouse_id', $this->warehouses->pluck('id'))
             ->where(fn ($query) => $query->whereNull('expiry_date')->orWhere('expiry_date', '>=', today()))

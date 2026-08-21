@@ -100,6 +100,7 @@ class MasterItem extends Model
         return $this->stockEntries()
             ->where('status', 'available')
             ->when($warehouseIds, fn ($query) => $query->whereIn('warehouse_id', (array) $warehouseIds))
+            ->withAvailableQuantity()
             ->get()
             ->sum(fn (StockEntry $entry) => $entry->availableQuantity());
     }

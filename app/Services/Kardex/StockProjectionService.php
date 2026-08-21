@@ -52,7 +52,7 @@ class StockProjectionService
         $consumed = (int) StockExit::query()
             ->whereHas('stockEntry', fn ($query) => $query->where('master_item_id', $item->id))
             ->when($warehouseIds, fn ($query) => $query->whereIn('warehouse_id', (array) $warehouseIds))
-            ->whereIn('exit_reason', $this->demandReasons())
+            ->whereIn('exit_reason', StockExitReason::demandValues())
             ->where('release_date', '>=', Carbon::now()->subDays($lookbackDays))
             ->sum('quantity_released');
 
@@ -61,18 +61,5 @@ class StockProjectionService
         }
 
         return $consumed / $lookbackDays;
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function demandReasons(): array
-    {
-        return [
-            StockExitReason::Donation->value,
-            StockExitReason::SubsidizedSale->value,
-            StockExitReason::EmergencyAssistance->value,
-            StockExitReason::Other->value,
-        ];
     }
 }

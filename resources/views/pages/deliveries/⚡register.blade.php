@@ -83,6 +83,7 @@ new #[Title('Registrar entrega — Entregas y Seguimiento')] class extends Compo
     {
         return StockEntry::query()
             ->with(['masterItem', 'warehouse'])
+            ->withAvailableQuantity()
             ->where('status', 'available')
             ->whereIn('warehouse_id', $this->warehouses->pluck('id'))
             ->where(fn ($query) => $query->whereNull('expiry_date')->orWhere('expiry_date', '>=', today()))

@@ -997,6 +997,47 @@ Observaciones: ___________________________________________
 
 ---
 
+## 10B. Correcciones de la auditoría frontend — Bloque 1
+
+### Caso 10.6 — Solo los vencimientos realmente próximos salen en rojo
+
+| Paso | Acción |
+|---|---|
+| 1 | Como operador, entra a **Kardex**. Mira la columna **Vencimiento** de la tabla. |
+
+**Resultado esperado:** solo aparecen en **rojo y negrita** los lotes ya vencidos o que vencen dentro de los próximos 30 días. Un lote que vence dentro de varios meses debe verse en gris, como el resto. Antes salía **todo** en rojo, lo que dejaba el aviso sin valor.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 10.7 — El Kardex se pagina
+
+| Paso | Acción |
+|---|---|
+| 1 | Como operador, entra a **Kardex** con el ambiente sembrado. |
+| 2 | Si hay más de 25 lotes, comprueba que aparecen controles de paginación al pie de la tabla y que la segunda página carga. |
+| 3 | Cambia el filtro de **Bodega** estando en la página 2. |
+
+**Resultado esperado:** la tabla muestra máximo 25 filas por página. Al cambiar el filtro de bodega, vuelve a la página 1 (no se queda en una página que ya no existe).
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 10.8 — Los avisos del Kardex siguen siendo correctos
+
+| Paso | Acción |
+|---|---|
+| 1 | Anota los números que muestran los tres avisos superiores del Kardex (ítems bajo el punto de reorden, proyección de agotamiento, bodegas sobre su capacidad). |
+| 2 | Registra una **salida** que deje algún ítem por debajo de su punto de reorden. |
+| 3 | Vuelve al Kardex. |
+
+**Resultado esperado:** los avisos reflejan el cambio **de inmediato**, sin esperar. Las cantidades mostradas coinciden con las de la columna "Disponible" de la tabla. *(Se optó deliberadamente por no cachear estos avisos, justamente para que no queden obsoletos tras un movimiento.)*
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+---
+
 ## 11. Resumen de resultados
 
 | # | Caso | Cumple | No cumple |
@@ -1074,8 +1115,11 @@ Observaciones: ___________________________________________
 | 10.3 | Sin destello de contenido oculto | ☐ | ☐ |
 | 10.4 | Nombre de ítem con HTML rechazado | ☐ | ☐ |
 | 10.5 | Mapa público no ejecuta HTML | ☐ | ☐ |
+| 10.6 | Solo vencimientos próximos en rojo | ☐ | ☐ |
+| 10.7 | El Kardex se pagina | ☐ | ☐ |
+| 10.8 | Avisos del Kardex correctos y al día | ☐ | ☐ |
 
-**Total cumple:** ___ / 73
+**Total cumple:** ___ / 76
 
 ## 12. Hallazgos (bugs encontrados)
 

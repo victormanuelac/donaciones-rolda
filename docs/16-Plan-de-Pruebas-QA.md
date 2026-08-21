@@ -1,6 +1,6 @@
 # 🧪 Plan de Pruebas QA — Funcionalidades en construcción
 
-**Alcance de esta versión:** Módulo 1 (Portal Público de Búsqueda, sin autenticación), Módulo 2 (Autenticación y Roles), el Formulario de Encuestas — Censo de Hogares (Fase 1 de triaje + registro de integrantes) y Módulo 3 (Kardex/Inventario de centros de acopio, incluido el catálogo administrable de Bodegas / Centros de Acopio, control de vencidos, FEFO, traslados entre bodegas, alertas de vencimiento y de stock mínimo). Se actualiza a medida que se agregan módulos nuevos.
+**Alcance de esta versión:** Módulo 1 (Portal Público de Búsqueda, sin autenticación), Módulo 2 (Autenticación y Roles), el Formulario de Encuestas — Censo de Hogares (Fase 1 de triaje + registro de integrantes) y Módulo 3 (Kardex/Inventario de centros de acopio, incluido el catálogo administrable de Bodegas / Centros de Acopio, control de vencidos, FEFO, traslados entre bodegas, alertas de vencimiento y de stock mínimo, conteo físico con ajustes, ficha Kardex por ítem y alerta de sobrecupo de bodega). Se actualiza a medida que se agregan módulos nuevos.
 
 Este documento es para quien haga de **QA**: cada caso trae los pasos exactos a ejecutar y la respuesta que debes esperar. Marca **Cumple** o **No cumple** en cada caso y anota cualquier diferencia en Observaciones — no interpretes, compara el resultado real contra el esperado tal como está escrito.
 
@@ -562,6 +562,55 @@ Observaciones: ___________________________________________
 `Cumple ☐   No cumple ☐`
 Observaciones: ___________________________________________
 
+### Caso 5.8 — Conteo físico sin diferencia
+
+| Paso | Acción |
+|---|---|
+| 1 | Con la cuenta de operador de prueba, ve a **Conteo físico** desde el Kardex. |
+| 2 | Selecciona un lote y anota la cantidad que el sistema dice que hay disponible. |
+| 3 | Escribe esa misma cantidad como "Cantidad contada físicamente" y guarda. |
+
+**Resultado esperado:** aparece un mensaje confirmando que el conteo coincide con el sistema, sin ajustes. No cambia la cantidad disponible del lote en el Kardex.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 5.9 — Conteo físico con faltante genera un ajuste
+
+| Paso | Acción |
+|---|---|
+| 1 | Selecciona un lote con existencias y escribe una cantidad contada **menor** a la que dice el sistema. |
+| 2 | Guarda el conteo. |
+| 3 | Revisa la cantidad disponible del lote en el Kardex. |
+
+**Resultado esperado:** aparece un mensaje indicando cuántas unidades se dieron de baja. La cantidad disponible del lote bajó exactamente en la diferencia entre lo contado y lo que decía el sistema.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 5.10 — Ficha Kardex por ítem
+
+| Paso | Acción |
+|---|---|
+| 1 | Desde el listado del Kardex, haz clic en **Ver ficha** sobre cualquier ítem con movimientos (ej. Acetaminofén 500mg en Bodega Centro, que ya tiene una entrada y una salida sembradas). |
+
+**Resultado esperado:** se abre una pantalla con una tabla cronológica mostrando cada entrada y salida del ítem, con la cantidad de cada movimiento (positiva o negativa) y el saldo acumulado después de cada una. El último saldo de la tabla coincide con la cantidad disponible que se ve en el listado del Kardex.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 5.11 — Alerta de sobrecupo de bodega
+
+| Paso | Acción |
+|---|---|
+| 1 | Con la cuenta de operador de prueba (que ya tiene datos sembrados), ve al listado del Kardex sin aplicar ningún filtro de bodega. |
+| 2 | Ve también a **Administración → Bodegas / Centros de Acopio** como Admin. |
+
+**Resultado esperado:** en el Kardex aparece un aviso ("Bodegas por encima de su capacidad máxima") mencionando **Bodega Centro** (sembrada deliberadamente por encima de su límite). En el listado de bodegas del panel de administración, la columna "Ocupación" de Bodega Centro se ve resaltada (en rojo) mostrando unidades ocupadas / capacidad máxima.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
 ---
 
 ## 6. Módulo 1 — Portal Público de Búsqueda
@@ -789,6 +838,10 @@ Observaciones: ___________________________________________
 | 5.5 | Alertas de vencimiento y resolución | ☐ | ☐ |
 | 5.6 | Alerta de stock mínimo | ☐ | ☐ |
 | 5.7 | Proyección de agotamiento | ☐ | ☐ |
+| 5.8 | Conteo físico sin diferencia | ☐ | ☐ |
+| 5.9 | Conteo físico con ajuste | ☐ | ☐ |
+| 5.10 | Ficha Kardex por ítem | ☐ | ☐ |
+| 5.11 | Alerta de sobrecupo de bodega | ☐ | ☐ |
 | 6.1 | Buscador es lo primero que se ve | ☐ | ☐ |
 | 6.1B | Vista dividida con info de la app | ☐ | ☐ |
 | 6.2 | Semáforo según cantidad | ☐ | ☐ |
@@ -804,7 +857,7 @@ Observaciones: ___________________________________________
 | 7.5 | No entrega más de lo disponible | ☐ | ☐ |
 | 7.6 | Listado de seguimiento con filtros | ☐ | ☐ |
 
-**Total cumple:** ___ / 54
+**Total cumple:** ___ / 58
 
 ## 9. Hallazgos (bugs encontrados)
 

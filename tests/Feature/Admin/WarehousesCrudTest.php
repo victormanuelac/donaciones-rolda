@@ -1,7 +1,10 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Models\Category;
 use App\Models\GeographicZone;
+use App\Models\MasterItem;
+use App\Models\StockEntry;
 use App\Models\User;
 use App\Models\Warehouse;
 use Livewire\Livewire;
@@ -95,4 +98,29 @@ test('un admin puede activar y desactivar una bodega', function () {
 
     Livewire::actingAs($admin)->test('pages::admin.warehouses')->call('toggleActive', $warehouse->id);
     expect($warehouse->fresh()->is_active)->toBeTrue();
+});
+
+test('el listado muestra la ocupacion frente a la capacidad maxima', function () {
+    $admin = makeAdmin();
+    $warehouse = Warehouse::create([
+        'name' => 'Bodega con límite',
+        'address' => 'Dirección',
+        'contact_person_name' => 'Contacto',
+        'contact_phone' => '3000000000',
+        'max_capacity_units' => 100,
+    ]);
+
+    $category = Category::create(['name' => 'Categoría '.uniqid()]);
+    $item = MasterItem::create(['category_id' => $category->id, 'name' => 'Arroz', 'unit_of_measure' => 'kg']);
+
+    StockEntry::create([
+        'master_item_id' => $item->id,
+        'warehouse_id' => $warehouse->id,
+        'registered_by_user_id' => $admin->id,
+        'quantity' => 40,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test('pages::admin.warehouses')
+        ->assertSee('40 / 100');
 });

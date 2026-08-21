@@ -66,7 +66,7 @@ El seeder (`database/seeders/DatabaseSeeder.php`, se ejecuta con `sail artisan m
 
 ### Usuario de prueba (operador de campo) + datos de Kardex
 
-El mismo seed corre `database/seeders/KardexDemoSeeder.php`: crea 2 bodegas de ejemplo (Bodega Centro, Bodega Guayabal), su catálogo de categorías/ítems, un operador ya asignado a ambas bodegas (sin depender de `tinker` para probar el Kardex) y existencias de ejemplo cubriendo los tres niveles de semáforo, un lote agotado (estado `withdrawn`), dos lotes por vencer en pocos días (para ver alertas en `/kardex/vencimientos`) y dos ítems por debajo de su punto de reorden.
+El mismo seed corre `database/seeders/KardexDemoSeeder.php`: crea 2 bodegas de ejemplo (Bodega Centro, Bodega Guayabal), su catálogo de categorías/ítems, un operador ya asignado a ambas bodegas (sin depender de `tinker` para probar el Kardex) y existencias de ejemplo cubriendo los tres niveles de semáforo, un lote agotado (estado `withdrawn`), dos lotes por vencer en pocos días (para ver alertas en `/kardex/vencimientos`), dos ítems por debajo de su punto de reorden, Bodega Centro deliberadamente por encima de su capacidad máxima (para ver la alerta en `/kardex` y en `/admin/bodegas`) y dos conteos físicos de ejemplo (uno sin diferencia, uno con un ajuste por faltante) para ver `/kardex/conteo` y la ficha por ítem en `/kardex/ficha`.
 
 | Campo | Valor |
 |---|---|

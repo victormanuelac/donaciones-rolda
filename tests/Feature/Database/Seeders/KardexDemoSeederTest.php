@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\ExpiryAlert;
 use App\Models\MasterItem;
+use App\Models\StockCount;
 use App\Models\StockEntry;
 use App\Models\User;
 use App\Models\Warehouse;
@@ -63,4 +64,21 @@ test('siembra las dos bodegas de ejemplo activas', function () {
     $this->seed(KardexDemoSeeder::class);
 
     expect(Warehouse::where('is_active', true)->count())->toBe(2);
+});
+
+test('siembra una bodega por encima de su capacidad máxima', function () {
+    $this->seed(KardexDemoSeeder::class);
+
+    $centro = Warehouse::where('name', 'Bodega Centro')->firstOrFail();
+
+    expect($centro->max_capacity_units)->not->toBeNull()
+        ->and($centro->isOverCapacity())->toBeTrue();
+});
+
+test('siembra conteos físicos de ejemplo, incluido uno con ajuste', function () {
+    $this->seed(KardexDemoSeeder::class);
+
+    expect(StockCount::count())->toBe(2)
+        ->and(StockCount::where('difference', 0)->count())->toBe(1)
+        ->and(StockCount::where('difference', '<', 0)->count())->toBe(1);
 });

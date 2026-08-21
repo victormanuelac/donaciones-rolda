@@ -13,6 +13,7 @@ enum StockExitReason: string
     case Loss = 'loss';
     case Damage = 'damage';
     case ExpiredDiscard = 'expired_discard';
+    case InventoryAdjustment = 'inventory_adjustment';
     case Other = 'other';
 
     public function label(): string
@@ -25,6 +26,7 @@ enum StockExitReason: string
             self::Loss => 'Pérdida',
             self::Damage => 'Daño',
             self::ExpiredDiscard => 'Descarte por vencimiento',
+            self::InventoryAdjustment => 'Ajuste por conteo físico',
             self::Other => 'Otro',
         };
     }
@@ -32,9 +34,11 @@ enum StockExitReason: string
     /**
      * Motivos de baja de inventario sin entrega a un beneficiario — son los únicos
      * que pueden usarse para dar de baja un lote ya vencido (ver RegisterStockExitAction).
+     * El ajuste por conteo también aplica sobre lotes vencidos: es una corrección de
+     * un dato incorrecto, no un despacho real, así que debe poder registrarse igual.
      */
     public function isWriteOff(): bool
     {
-        return in_array($this, [self::Loss, self::Damage, self::ExpiredDiscard], true);
+        return in_array($this, [self::Loss, self::Damage, self::ExpiredDiscard, self::InventoryAdjustment], true);
     }
 }

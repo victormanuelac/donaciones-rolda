@@ -1,4 +1,5 @@
 import { enqueue } from '../offline/queue.js';
+import { newClientUuid } from '../offline/uuid.js';
 
 const SYNC_ENDPOINT = '/kardex/entradas/sync';
 
@@ -23,7 +24,7 @@ export default function stockEntryForm() {
 
         buildPayload() {
             return {
-                client_uuid: crypto.randomUUID(),
+                client_uuid: newClientUuid(),
                 warehouse_id: this.warehouse_id,
                 master_item_id: this.master_item_id,
                 quantity: this.quantity,
@@ -37,9 +38,14 @@ export default function stockEntryForm() {
             this.submitting = true;
             this.errorMessage = '';
 
-            const payload = this.buildPayload();
+            // `payload` se arma dentro del try: si armarlo falla, el error tiene
+            // que verse en pantalla en vez de dejar el botón colgado en
+            // "Guardando..." (hallazgo C-2).
+            let payload = null;
 
             try {
+                payload = this.buildPayload();
+
                 const response = await fetch(SYNC_ENDPOINT, {
                     method: 'POST',
                     credentials: 'same-origin',
@@ -66,7 +72,11 @@ export default function stockEntryForm() {
                     await this.queueOffline(payload.client_uuid, payload);
                 }
             } catch {
-                await this.queueOffline(payload.client_uuid, payload);
+                if (payload === null) {
+                    this.errorMessage = 'No se pudo preparar el registro en este dispositivo. Recarga la página e intenta de nuevo.';
+                } else {
+                    await this.queueOffline(payload.client_uuid, payload);
+                }
             } finally {
                 this.submitting = false;
             }

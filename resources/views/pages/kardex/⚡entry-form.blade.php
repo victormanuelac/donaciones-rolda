@@ -49,10 +49,12 @@ new #[Title('Registrar entrada — Kardex')] class extends Component {
         $this->authorize('request', MasterItem::class);
 
         $data = $this->validate([
-            'requestName' => ['required', 'string', 'max:150'],
+            'requestName' => MasterItem::nameRules(),
             'requestCategoryId' => ['required', 'integer', 'exists:categories,id'],
             'requestUnitOfMeasure' => ['required', 'string', 'max:30'],
             'requestDescription' => ['nullable', 'string', 'max:500'],
+        ], [
+            'requestName.regex' => __('El nombre no puede contener los signos < ni >.'),
         ]);
 
         $action->handle([

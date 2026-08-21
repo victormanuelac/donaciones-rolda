@@ -931,7 +931,73 @@ Observaciones: ___________________________________________
 
 ---
 
-## 10. Resumen de resultados
+## 10. Correcciones de la auditoría frontend — Bloque 0
+
+Casos que verifican las correcciones críticas de `docs/17-Auditoria-Frontend.md`. Son visuales o de comportamiento del navegador, así que la suite automatizada no los cubre del todo — hay que mirarlos.
+
+### Caso 10.1 — El panel muestra datos reales, no ceros
+
+| Paso | Acción |
+|---|---|
+| 1 | Inicia sesión como **admin** y quédate en el panel de inicio (`/dashboard`). |
+
+**Resultado esperado:** las tarjetas muestran **números reales** tomados de la base sembrada (bodegas activas, lotes disponibles, entregas de los últimos 30 días, hogares censados, personas cubiertas, hogares de prioridad alta o crítica, usuarios e ítems por aprobar). **No** debe aparecer ningún `0` fijo ni el texto "Todavía no hay módulos operativos". Al hacer clic en una tarjeta te lleva a la pantalla correspondiente.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 10.2 — El panel respeta el rol
+
+| Paso | Acción |
+|---|---|
+| 1 | Inicia sesión con una cuenta de rol **Donante** (créala y apruébala como en el Caso 2.3). |
+
+**Resultado esperado:** **no** ves conteos de inventario ni de censo. Aparece el mensaje "Tu rol todavía no tiene módulos asignados".
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 10.3 — No hay destello de contenido oculto al cargar
+
+| Paso | Acción |
+|---|---|
+| 1 | Como operador, entra a **Kardex → Registrar entrada**. Recarga con `Ctrl+F5` y observa el primer instante de la carga. |
+| 2 | Repite en el portal público (`/`), recargando con `Ctrl+F5`. |
+
+**Resultado esperado:** en el paso 1 ves **solo el formulario**. No debe destellar el panel de éxito "Entrada registrada", ni un recuadro rojo de error vacío, ni el texto "Guardando…". En el paso 2 no deben destellar a la vez "Buscando…" y "No encontramos insumos disponibles".
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 10.4 — Un nombre de ítem con HTML es rechazado
+
+| Paso | Acción |
+|---|---|
+| 1 | Como operador, en **Kardex → Registrar entrada**, abre "¿No encuentras el ítem? Solicitar uno nuevo". |
+| 2 | Escribe como nombre: `<img src=x onerror=alert(1)>`, completa categoría y unidad, y envía. |
+| 3 | Repite el intento como admin, editando el nombre de un ítem en **Ítems pendientes** antes de aprobarlo. |
+
+**Resultado esperado:** en ambos casos aparece el error *"El nombre no puede contener los signos < ni >."* y **no** se guarda nada. En ningún momento debe aparecer una ventana emergente de alerta.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 10.5 — El mapa público no ejecuta HTML en los nombres
+
+| Paso | Acción |
+|---|---|
+| 1 | Como admin, renombra temporalmente una bodega a `<b>Prueba</b>` (Bodegas / Centros de Acopio). |
+| 2 | En el portal público (`/`), busca un insumo que esté en esa bodega y mira su marcador en el mapa de la derecha. |
+| 3 | Deja el nombre de la bodega como estaba. |
+
+**Resultado esperado:** el globo del marcador muestra el texto **literal** `<b>Prueba</b>`, con los signos visibles y sin negrita. No debe interpretarse como HTML ni aparecer ninguna alerta.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+---
+
+## 11. Resumen de resultados
 
 | # | Caso | Cumple | No cumple |
 |---|---|---|---|
@@ -1003,10 +1069,15 @@ Observaciones: ___________________________________________
 | 9.3 | Detalle de hogar y agregar integrante | ☐ | ☐ |
 | 9.4 | Completar perfil calcula puntaje | ☐ | ☐ |
 | 9.5 | Guardar perfil genera recomendaciones | ☐ | ☐ |
+| 10.1 | Panel con datos reales | ☐ | ☐ |
+| 10.2 | Panel respeta el rol | ☐ | ☐ |
+| 10.3 | Sin destello de contenido oculto | ☐ | ☐ |
+| 10.4 | Nombre de ítem con HTML rechazado | ☐ | ☐ |
+| 10.5 | Mapa público no ejecuta HTML | ☐ | ☐ |
 
-**Total cumple:** ___ / 68
+**Total cumple:** ___ / 73
 
-## 11. Hallazgos (bugs encontrados)
+## 12. Hallazgos (bugs encontrados)
 
 Para cada caso marcado "No cumple", documenta aquí con el mismo número de caso:
 

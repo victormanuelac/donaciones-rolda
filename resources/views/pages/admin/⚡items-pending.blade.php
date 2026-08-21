@@ -66,6 +66,14 @@ new #[Title('Ítems pendientes de aprobación')] class extends Component {
 
         $this->authorize('approve', $item);
 
+        // El admin puede corregir el nombre antes de aprobarlo, así que este es
+        // el segundo punto de entrada del campo que se publica en el portal
+        // anónimo — se valida igual que en la solicitud (hallazgo C-1).
+        $this->validate(
+            ["name.{$itemId}" => MasterItem::nameRules()],
+            ["name.{$itemId}.regex" => __('El nombre no puede contener los signos < ni >.')],
+        );
+
         $action->handle($item, auth()->user(), [
             'name' => $this->name[$itemId] ?? $item->name,
             'category_id' => $this->categoryId[$itemId] ?? $item->category_id,

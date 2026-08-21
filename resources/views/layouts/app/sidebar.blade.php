@@ -4,6 +4,12 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-canvas text-ink">
+        {{-- Enlace para saltar la navegación: sin él hay que tabular todo el
+             sidebar en cada página antes de llegar al contenido (hallazgo B-2). --}}
+        <a href="#contenido"
+           class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded focus:bg-primary focus:px-4 focus:py-2 focus:font-display focus:font-bold focus:text-white">
+            {{ __('Saltar al contenido') }}
+        </a>
         <flux:sidebar sticky collapsible="mobile" class="border-e-2 border-line bg-surface">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
@@ -114,7 +120,9 @@
             </flux:dropdown>
         </flux:header>
 
-        {{ $slot }}
+        <main id="contenido" tabindex="-1">
+            {{ $slot }}
+        </main>
 
         @persist('toast')
             <flux:toast.group>

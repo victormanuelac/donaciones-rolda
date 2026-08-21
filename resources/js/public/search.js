@@ -26,6 +26,8 @@ export default function publicSearch(zones = []) {
         results: [],
         loading: false,
         searched: false,
+        searchError: '',
+        inFlight: null,
         userLocation: null,
         locationLabel: '',
         locating: false,
@@ -93,7 +95,15 @@ export default function publicSearch(zones = []) {
         },
 
         async runSearch() {
+            // Se cancela la petición anterior: con el debounce de 350ms y una red
+            // lenta, dos búsquedas en vuelo podían resolverse fuera de orden y la
+            // vieja pisaba a la nueva (docs/17-Auditoria-Frontend.md, M-7).
+            this.inFlight?.abort();
+            const controller = new AbortController();
+            this.inFlight = controller;
+
             this.loading = true;
+            this.searchError = '';
 
             const params = new URLSearchParams();
             if (this.query) params.set('q', this.query);
@@ -107,16 +117,36 @@ export default function publicSearch(zones = []) {
             try {
                 const response = await fetch(`/api/public/search?${params.toString()}`, {
                     headers: { Accept: 'application/json' },
+                    signal: controller.signal,
                 });
 
-                if (response.ok) {
-                    const body = await response.json();
-                    this.results = body.results;
-                    window.dispatchEvent(new CustomEvent('public-search:results-updated', { detail: this.results }));
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
                 }
-            } finally {
-                this.loading = false;
+
+                const body = await response.json();
+                this.results = body.results;
                 this.searched = true;
+                window.dispatchEvent(new CustomEvent('public-search:results-updated', { detail: this.results }));
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    // La reemplazó una búsqueda más nueva: no es un error real y no
+                    // debe tocar el estado, que ya pertenece a la petición vigente.
+                    return;
+                }
+
+                // Antes esto caía en el estado vacío y le decía a la persona "no hay
+                // insumos" cuando en realidad se cayó la conexión. En una emergencia
+                // esa confusión es grave, así que se distingue explícitamente.
+                this.results = [];
+                this.searched = true;
+                this.searchError = 'No pudimos conectarnos para buscar. Revisa tu conexión e intenta de nuevo.';
+                window.dispatchEvent(new CustomEvent('public-search:results-updated', { detail: [] }));
+            } finally {
+                if (this.inFlight === controller) {
+                    this.loading = false;
+                    this.inFlight = null;
+                }
             }
         },
 
@@ -133,6 +163,20 @@ export default function publicSearch(zones = []) {
 
         closeContact() {
             this.$flux.modal('contact-unlock-modal').close();
+            this.resetContact();
+        },
+
+        /**
+         * Limpieza del modal de contacto. Se invoca también desde `x-on:close`
+         * del modal, porque cerrarlo con ESC o clic fuera no pasa por
+         * `closeContact()` — y sin retirar el widget de Turnstile, reabrirlo
+         * apilaba un segundo captcha en el mismo contenedor
+         * (docs/17-Auditoria-Frontend.md, M-6).
+         */
+        resetContact() {
+            this.turnstileToken = '';
+            this.contactResult = null;
+            this.contactErrorMessage = '';
 
             if (this.turnstileWidgetId !== null && window.turnstile) {
                 window.turnstile.remove(this.turnstileWidgetId);

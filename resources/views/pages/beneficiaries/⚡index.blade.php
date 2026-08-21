@@ -86,50 +86,61 @@ new #[Title('Beneficiarios')] class extends Component {
         </flux:select>
     </div>
 
-    <div class="card-brutal overflow-hidden">
+    {{-- Sin esto los filtros `.live` congelan la tabla en silencio durante el
+     viaje al servidor, sin ninguna señal de actividad (hallazgo M-1). --}}
+    <div wire:loading.flex wire:target="search, zoneFilter, priorityFilter" class="items-center gap-2 mb-2 text-sm text-muted">
+        <flux:icon.loading variant="micro" />
+        {{ __('Actualizando...') }}
+    </div>
+
+    <div class="card-brutal overflow-hidden transition-opacity"
+         wire:loading.class="opacity-50 pointer-events-none"
+         wire:target="search, zoneFilter, priorityFilter">
         @if ($this->families->isEmpty())
             <div class="p-10 text-center">
                 <p class="font-display text-lg font-bold text-ink">{{ __('Sin hogares registrados') }}</p>
                 <p class="text-muted text-sm mt-1">{{ __('Los hogares aparecen aquí después de capturarse en el censo de Fase 1.') }}</p>
             </div>
         @else
-            <table class="w-full">
-                <thead>
-                    <tr class="bg-surface-2 border-b-2 border-line">
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Jefe de hogar') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Zona') }}</th>
-                        <th class="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Personas') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Prioridad Fase 1') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Perfiles Fase 2') }}</th>
-                        <th class="px-4 py-3"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($this->families as $family)
-                        <tr wire:key="family-{{ $family->id }}" class="border-b border-line last:border-b-0">
-                            <td class="px-4 py-3 text-ink">{{ $family->head_full_name }}</td>
-                            <td class="px-4 py-3 text-muted">{{ $family->zone?->name ?? '—' }}</td>
-                            <td class="px-4 py-3 text-right text-ink">{{ $family->household_size }}</td>
-                            <td class="px-4 py-3">
-                                @php $censusEntry = $family->censusEntries->first(); @endphp
-                                @if ($censusEntry)
-                                    <flux:badge :color="match ($censusEntry->priority_level->value) { 'critico' => 'red', 'alto' => 'amber', 'medio' => 'yellow', default => 'zinc' }">
-                                        {{ $censusEntry->priority_level->label() }}
-                                    </flux:badge>
-                                @else
-                                    <span class="text-muted">—</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3 text-muted">
-                                {{ $family->beneficiaries->filter(fn ($b) => $b->hasProfile())->count() }} / {{ $family->beneficiaries->count() }}
-                            </td>
-                            <td class="px-4 py-3 text-right">
-                                <flux:button size="sm" :href="route('beneficiaries.show', $family)" wire:navigate>{{ __('Ver hogar') }}</flux:button>
-                            </td>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[720px]">
+                    <thead>
+                        <tr class="bg-surface-2 border-b-2 border-line">
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Jefe de hogar') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Zona') }}</th>
+                            <th scope="col" class="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Personas') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Prioridad Fase 1') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Perfiles Fase 2') }}</th>
+                            <th scope="col" class="px-4 py-3"></th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach ($this->families as $family)
+                            <tr wire:key="family-{{ $family->id }}" class="border-b border-line last:border-b-0">
+                                <td class="px-4 py-3 text-ink">{{ $family->head_full_name }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $family->zone?->name ?? '—' }}</td>
+                                <td class="px-4 py-3 text-right text-ink">{{ $family->household_size }}</td>
+                                <td class="px-4 py-3">
+                                    @php $censusEntry = $family->censusEntries->first(); @endphp
+                                    @if ($censusEntry)
+                                        <flux:badge :color="match ($censusEntry->priority_level->value) { 'critico' => 'red', 'alto' => 'amber', 'medio' => 'yellow', default => 'zinc' }">
+                                            {{ $censusEntry->priority_level->label() }}
+                                        </flux:badge>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-muted">
+                                    {{ $family->beneficiaries->filter(fn ($b) => $b->hasProfile())->count() }} / {{ $family->beneficiaries->count() }}
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <flux:button size="sm" :href="route('beneficiaries.show', $family)" wire:navigate>{{ __('Ver hogar') }}</flux:button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
 
             <div class="p-4 border-t border-line">
                 {{ $this->families->links() }}

@@ -90,33 +90,44 @@ new #[Title('Ficha Kardex')] class extends Component {
             <p class="font-display text-lg font-bold text-ink">{{ __('Sin movimientos registrados') }}</p>
         </div>
     @else
-        <div class="card-brutal overflow-hidden">
-            <table class="w-full">
-                <thead>
-                    <tr class="bg-surface-2 border-b-2 border-line">
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Fecha') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Movimiento') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Bodega') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Lote') }}</th>
-                        <th class="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Cantidad') }}</th>
-                        <th class="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Saldo') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($this->movements as $movement)
-                        <tr wire:key="movement-{{ $loop->index }}" class="border-b border-line last:border-b-0">
-                            <td class="px-4 py-3 text-muted">{{ $movement['date']->format('d/m/Y H:i') }}</td>
-                            <td class="px-4 py-3 text-ink">{{ $movement['label'] }}</td>
-                            <td class="px-4 py-3 text-muted">{{ $movement['warehouse_name'] }}</td>
-                            <td class="px-4 py-3 text-muted">{{ $movement['lot_number'] ?? '—' }}</td>
-                            <td @class(['px-4 py-3 text-right font-bold', 'text-secondary' => $movement['quantity_delta'] > 0, 'text-danger' => $movement['quantity_delta'] < 0, 'text-muted' => $movement['quantity_delta'] === 0])>
-                                {{ $movement['quantity_delta'] > 0 ? '+' : '' }}{{ $movement['quantity_delta'] }}
-                            </td>
-                            <td class="px-4 py-3 text-right text-ink font-bold">{{ $movement['balance'] }}</td>
+        {{-- Sin esto los filtros `.live` congelan la tabla en silencio durante el
+     viaje al servidor, sin ninguna señal de actividad (hallazgo M-1). --}}
+    <div wire:loading.flex wire:target="itemId, warehouseFilter" class="items-center gap-2 mb-2 text-sm text-muted">
+        <flux:icon.loading variant="micro" />
+        {{ __('Actualizando...') }}
+    </div>
+
+    <div class="card-brutal overflow-hidden transition-opacity"
+         wire:loading.class="opacity-50 pointer-events-none"
+         wire:target="itemId, warehouseFilter">
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[720px]">
+                    <thead>
+                        <tr class="bg-surface-2 border-b-2 border-line">
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Fecha') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Movimiento') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Bodega') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Lote') }}</th>
+                            <th scope="col" class="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Cantidad') }}</th>
+                            <th scope="col" class="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Saldo') }}</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach ($this->movements as $movement)
+                            <tr wire:key="movement-{{ $loop->index }}" class="border-b border-line last:border-b-0">
+                                <td class="px-4 py-3 text-muted">{{ $movement['date']->format('d/m/Y H:i') }}</td>
+                                <td class="px-4 py-3 text-ink">{{ $movement['label'] }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $movement['warehouse_name'] }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $movement['lot_number'] ?? '—' }}</td>
+                                <td @class(['px-4 py-3 text-right font-bold', 'text-secondary' => $movement['quantity_delta'] > 0, 'text-danger' => $movement['quantity_delta'] < 0, 'text-muted' => $movement['quantity_delta'] === 0])>
+                                    {{ $movement['quantity_delta'] > 0 ? '+' : '' }}{{ $movement['quantity_delta'] }}
+                                </td>
+                                <td class="px-4 py-3 text-right text-ink font-bold">{{ $movement['balance'] }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
     @endif
 </section>

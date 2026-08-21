@@ -176,7 +176,7 @@ new #[Title('Hogar — Beneficiarios')] class extends Component {
 
             <div class="flex justify-end gap-3">
                 <flux:button wire:click="$set('showAddMemberModal', false)">{{ __('Cancelar') }}</flux:button>
-                <flux:button variant="primary" wire:click="addMember">{{ __('Guardar') }}</flux:button>
+                <flux:button variant="primary" wire:click="addMember" wire:loading.attr="disabled" wire:target="addMember">{{ __('Guardar') }}</flux:button>
             </div>
         </div>
     </flux:modal>

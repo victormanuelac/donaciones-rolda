@@ -81,45 +81,47 @@ new #[Title('Usuarios pendientes de aprobación')] class extends Component {
                 <p class="text-muted text-sm mt-1">{{ __('Todos los registros ya fueron revisados.') }}</p>
             </div>
         @else
-            <table class="w-full">
-                <thead>
-                    <tr class="bg-surface-2 border-b-2 border-line">
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Nombre') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Email') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Registrado') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Rol a asignar') }}</th>
-                        <th class="px-4 py-3"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($this->pendingUsers as $pending)
-                        <tr wire:key="pending-{{ $pending->id }}" class="border-b border-line last:border-b-0">
-                            <td class="px-4 py-3 text-ink">{{ $pending->name }}</td>
-                            <td class="px-4 py-3 text-muted">{{ $pending->email }}</td>
-                            <td class="px-4 py-3 text-muted">{{ $pending->created_at?->diffForHumans() }}</td>
-                            <td class="px-4 py-3">
-                                <flux:select wire:model="selectedRole.{{ $pending->id }}" size="sm">
-                                    @foreach (UserRole::cases() as $role)
-                                        <flux:select.option :value="$role->value" :selected="$this->roleFor($pending->id) === $role->value">
-                                            {{ $role->label() }}
-                                        </flux:select.option>
-                                    @endforeach
-                                </flux:select>
-                            </td>
-                            <td class="px-4 py-3">
-                                <div class="flex gap-2 justify-end">
-                                    <flux:button size="sm" variant="primary" wire:click="approve({{ $pending->id }})">
-                                        {{ __('Aprobar') }}
-                                    </flux:button>
-                                    <flux:button size="sm" variant="danger" wire:click="reject({{ $pending->id }})" wire:confirm="{{ __('¿Rechazar a :name?', ['name' => $pending->name]) }}">
-                                        {{ __('Rechazar') }}
-                                    </flux:button>
-                                </div>
-                            </td>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[720px]">
+                    <thead>
+                        <tr class="bg-surface-2 border-b-2 border-line">
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Nombre') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Email') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Registrado') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Rol a asignar') }}</th>
+                            <th scope="col" class="px-4 py-3"></th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach ($this->pendingUsers as $pending)
+                            <tr wire:key="pending-{{ $pending->id }}" class="border-b border-line last:border-b-0">
+                                <td class="px-4 py-3 text-ink">{{ $pending->name }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $pending->email }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $pending->created_at?->diffForHumans() }}</td>
+                                <td class="px-4 py-3">
+                                    <flux:select wire:model="selectedRole.{{ $pending->id }}" size="sm">
+                                        @foreach (UserRole::cases() as $role)
+                                            <flux:select.option :value="$role->value" :selected="$this->roleFor($pending->id) === $role->value">
+                                                {{ $role->label() }}
+                                            </flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex gap-2 justify-end">
+                                        <flux:button size="sm" variant="primary" wire:click="approve({{ $pending->id }})" wire:loading.attr="disabled" wire:target="approve({{ $pending->id }})">
+                                            {{ __('Aprobar') }}
+                                        </flux:button>
+                                        <flux:button size="sm" variant="danger" wire:click="reject({{ $pending->id }})" wire:confirm="{{ __('¿Rechazar a :name?', ['name' => $pending->name]) }}">
+                                            {{ __('Rechazar') }}
+                                        </flux:button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         @endif
     </div>
 </section>

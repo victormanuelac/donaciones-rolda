@@ -198,54 +198,65 @@ new #[Title('Kardex — Inventario')] class extends Component {
         </flux:field>
     @endif
 
-    <div class="card-brutal overflow-hidden">
+    {{-- Sin esto los filtros `.live` congelan la tabla en silencio durante el
+     viaje al servidor, sin ninguna señal de actividad (hallazgo M-1). --}}
+    <div wire:loading.flex wire:target="warehouseFilter" class="items-center gap-2 mb-2 text-sm text-muted">
+        <flux:icon.loading variant="micro" />
+        {{ __('Actualizando...') }}
+    </div>
+
+    <div class="card-brutal overflow-hidden transition-opacity"
+         wire:loading.class="opacity-50 pointer-events-none"
+         wire:target="warehouseFilter">
         @if ($this->entries->isEmpty())
             <div class="p-10 text-center">
                 <p class="font-display text-lg font-bold text-ink">{{ __('Sin existencias registradas') }}</p>
                 <p class="text-muted text-sm mt-1">{{ __('Registra una entrada para empezar a llevar el Kardex.') }}</p>
             </div>
         @else
-            <table class="w-full">
-                <thead>
-                    <tr class="bg-surface-2 border-b-2 border-line">
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Ítem') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Bodega') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Lote') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Vencimiento') }}</th>
-                        <th class="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Disponible') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Estado') }}</th>
-                        <th class="px-4 py-3"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($this->entries as $entry)
-                        <tr wire:key="entry-{{ $entry->id }}" class="border-b border-line last:border-b-0">
-                            <td class="px-4 py-3 text-ink">
-                                {{ $entry->masterItem->name }}
-                                <span class="text-muted text-xs block">{{ $entry->masterItem->category->name }}</span>
-                            </td>
-                            <td class="px-4 py-3 text-muted">{{ $entry->warehouse->name }}</td>
-                            <td class="px-4 py-3 text-muted">{{ $entry->lot_number ?? '—' }}</td>
-                            <td class="px-4 py-3 text-muted">
-                                @if ($entry->expiry_date)
-                                    <span @class(['text-danger font-bold' => $entry->isExpiringSoon()])>
-                                        {{ $entry->expiry_date->format('d/m/Y') }}
-                                    </span>
-                                @else
-                                    —
-                                @endif
-                            </td>
-                            <td class="px-4 py-3 text-right text-ink font-bold">{{ $entry->availableQuantity() }} {{ $entry->masterItem->unit_of_measure }}</td>
-                            <td class="px-4 py-3">
-                                <flux:badge :color="$entry->status->value === 'available' ? 'green' : 'zinc'">{{ $entry->status->label() }}</flux:badge>
-                            </td>
-                            <td class="px-4 py-3 text-right">
-                                <flux:button size="sm" :href="route('kardex.ledger', ['itemId' => $entry->master_item_id])" wire:navigate>{{ __('Ver ficha') }}</flux:button>
-                            </td>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[720px]">
+                    <thead>
+                        <tr class="bg-surface-2 border-b-2 border-line">
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Ítem') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Bodega') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Lote') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Vencimiento') }}</th>
+                            <th scope="col" class="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Disponible') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Estado') }}</th>
+                            <th scope="col" class="px-4 py-3"></th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach ($this->entries as $entry)
+                            <tr wire:key="entry-{{ $entry->id }}" class="border-b border-line last:border-b-0">
+                                <td class="px-4 py-3 text-ink">
+                                    {{ $entry->masterItem->name }}
+                                    <span class="text-muted text-xs block">{{ $entry->masterItem->category->name }}</span>
+                                </td>
+                                <td class="px-4 py-3 text-muted">{{ $entry->warehouse->name }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $entry->lot_number ?? '—' }}</td>
+                                <td class="px-4 py-3 text-muted">
+                                    @if ($entry->expiry_date)
+                                        <span @class(['text-danger font-bold' => $entry->isExpiringSoon()])>
+                                            {{ $entry->expiry_date->format('d/m/Y') }}
+                                        </span>
+                                    @else
+                                        —
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-right text-ink font-bold">{{ $entry->availableQuantity() }} {{ $entry->masterItem->unit_of_measure }}</td>
+                                <td class="px-4 py-3">
+                                    <flux:badge :color="$entry->status->value === 'available' ? 'green' : 'zinc'">{{ $entry->status->label() }}</flux:badge>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <flux:button size="sm" :href="route('kardex.ledger', ['itemId' => $entry->master_item_id])" wire:navigate>{{ __('Ver ficha') }}</flux:button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
 
             <div class="p-4 border-t border-line">
                 {{ $this->entries->links() }}

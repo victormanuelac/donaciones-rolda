@@ -143,60 +143,62 @@ new #[Title('Bodegas / Centros de Acopio')] class extends Component {
                 <p class="text-muted text-sm mt-1">{{ __('Crea la primera bodega / centro de acopio para empezar a usar el Kardex.') }}</p>
             </div>
         @else
-            <table class="w-full">
-                <thead>
-                    <tr class="bg-surface-2 border-b-2 border-line">
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Nombre') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Zona') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Contacto') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Ocupación') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Estado') }}</th>
-                        <th class="px-4 py-3"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($this->warehouses as $warehouse)
-                        <tr wire:key="warehouse-{{ $warehouse->id }}" class="border-b border-line last:border-b-0">
-                            <td class="px-4 py-3 text-ink">
-                                {{ $warehouse->name }}
-                                <span class="text-muted text-xs block">{{ $warehouse->address }}</span>
-                            </td>
-                            <td class="px-4 py-3 text-muted">{{ $warehouse->zone?->name ?? '—' }}</td>
-                            <td class="px-4 py-3 text-muted">
-                                {{ $warehouse->contact_person_name }}
-                                <span class="block text-xs">{{ $warehouse->contact_phone }}</span>
-                            </td>
-                            <td class="px-4 py-3">
-                                @if ($warehouse->max_capacity_units)
-                                    <span @class(['font-bold' => $warehouse->isOverCapacity(), 'text-danger' => $warehouse->isOverCapacity(), 'text-muted' => ! $warehouse->isOverCapacity()])>
-                                        {{ $warehouse->occupiedUnits() }} / {{ $warehouse->max_capacity_units }}
-                                    </span>
-                                @else
-                                    <span class="text-muted">—</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3">
-                                <flux:badge :color="$warehouse->is_active ? 'green' : 'zinc'">
-                                    {{ $warehouse->is_active ? __('Activa') : __('Inactiva') }}
-                                </flux:badge>
-                            </td>
-                            <td class="px-4 py-3">
-                                <div class="flex gap-2 justify-end">
-                                    <flux:button size="sm" wire:click="openEdit({{ $warehouse->id }})">{{ __('Editar') }}</flux:button>
-                                    <flux:button
-                                        size="sm"
-                                        :variant="$warehouse->is_active ? 'danger' : 'primary'"
-                                        wire:click="toggleActive({{ $warehouse->id }})"
-                                        wire:confirm="{{ $warehouse->is_active ? __('¿Desactivar :name?', ['name' => $warehouse->name]) : __('¿Reactivar :name?', ['name' => $warehouse->name]) }}"
-                                    >
-                                        {{ $warehouse->is_active ? __('Desactivar') : __('Activar') }}
-                                    </flux:button>
-                                </div>
-                            </td>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[720px]">
+                    <thead>
+                        <tr class="bg-surface-2 border-b-2 border-line">
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Nombre') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Zona') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Contacto') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Ocupación') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Estado') }}</th>
+                            <th scope="col" class="px-4 py-3"></th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach ($this->warehouses as $warehouse)
+                            <tr wire:key="warehouse-{{ $warehouse->id }}" class="border-b border-line last:border-b-0">
+                                <td class="px-4 py-3 text-ink">
+                                    {{ $warehouse->name }}
+                                    <span class="text-muted text-xs block">{{ $warehouse->address }}</span>
+                                </td>
+                                <td class="px-4 py-3 text-muted">{{ $warehouse->zone?->name ?? '—' }}</td>
+                                <td class="px-4 py-3 text-muted">
+                                    {{ $warehouse->contact_person_name }}
+                                    <span class="block text-xs">{{ $warehouse->contact_phone }}</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    @if ($warehouse->max_capacity_units)
+                                        <span @class(['font-bold' => $warehouse->isOverCapacity(), 'text-danger' => $warehouse->isOverCapacity(), 'text-muted' => ! $warehouse->isOverCapacity()])>
+                                            {{ $warehouse->occupiedUnits() }} / {{ $warehouse->max_capacity_units }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3">
+                                    <flux:badge :color="$warehouse->is_active ? 'green' : 'zinc'">
+                                        {{ $warehouse->is_active ? __('Activa') : __('Inactiva') }}
+                                    </flux:badge>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex gap-2 justify-end">
+                                        <flux:button size="sm" wire:click="openEdit({{ $warehouse->id }})">{{ __('Editar') }}</flux:button>
+                                        <flux:button
+                                            size="sm"
+                                            :variant="$warehouse->is_active ? 'danger' : 'primary'"
+                                            wire:click="toggleActive({{ $warehouse->id }})"
+                                            wire:confirm="{{ $warehouse->is_active ? __('¿Desactivar :name?', ['name' => $warehouse->name]) : __('¿Reactivar :name?', ['name' => $warehouse->name]) }}"
+                                        >
+                                            {{ $warehouse->is_active ? __('Desactivar') : __('Activar') }}
+                                        </flux:button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         @endif
     </div>
 
@@ -233,7 +235,7 @@ new #[Title('Bodegas / Centros de Acopio')] class extends Component {
 
             <div class="flex justify-end gap-3">
                 <flux:button wire:click="$set('showModal', false)">{{ __('Cancelar') }}</flux:button>
-                <flux:button variant="primary" wire:click="save">{{ __('Guardar') }}</flux:button>
+                <flux:button variant="primary" wire:click="save" wire:loading.attr="disabled" wire:target="save">{{ __('Guardar') }}</flux:button>
             </div>
         </div>
     </flux:modal>

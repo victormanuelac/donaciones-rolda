@@ -101,34 +101,36 @@ new #[Title('Vencimientos — Kardex')] class extends Component {
                 <p class="text-muted text-sm mt-1">{{ __('No hay lotes por vencer en los próximos 30 días.') }}</p>
             </div>
         @else
-            <table class="w-full">
-                <thead>
-                    <tr class="bg-surface-2 border-b-2 border-line">
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Ítem') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Bodega') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Vence') }}</th>
-                        <th class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Alerta') }}</th>
-                        <th class="px-4 py-3"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($this->alerts as $alert)
-                        <tr wire:key="alert-{{ $alert->id }}" class="border-b border-line last:border-b-0">
-                            <td class="px-4 py-3 text-ink">{{ $alert->stockEntry->masterItem->name }}</td>
-                            <td class="px-4 py-3 text-muted">{{ $alert->stockEntry->warehouse->name }}</td>
-                            <td class="px-4 py-3 text-muted">{{ $alert->stockEntry->expiry_date?->format('d/m/Y') }}</td>
-                            <td class="px-4 py-3">
-                                <flux:badge :color="$alert->alert_type === ExpiryAlertType::Expired ? 'red' : 'amber'">
-                                    {{ $alert->alert_type->label() }}
-                                </flux:badge>
-                            </td>
-                            <td class="px-4 py-3 text-right">
-                                <flux:button size="sm" wire:click="openResolve({{ $alert->id }})">{{ __('Resolver') }}</flux:button>
-                            </td>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[720px]">
+                    <thead>
+                        <tr class="bg-surface-2 border-b-2 border-line">
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Ítem') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Bodega') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Vence') }}</th>
+                            <th scope="col" class="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted font-display">{{ __('Alerta') }}</th>
+                            <th scope="col" class="px-4 py-3"></th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach ($this->alerts as $alert)
+                            <tr wire:key="alert-{{ $alert->id }}" class="border-b border-line last:border-b-0">
+                                <td class="px-4 py-3 text-ink">{{ $alert->stockEntry->masterItem->name }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $alert->stockEntry->warehouse->name }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $alert->stockEntry->expiry_date?->format('d/m/Y') }}</td>
+                                <td class="px-4 py-3">
+                                    <flux:badge :color="$alert->alert_type === ExpiryAlertType::Expired ? 'red' : 'amber'">
+                                        {{ $alert->alert_type->label() }}
+                                    </flux:badge>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <flux:button size="sm" wire:click="openResolve({{ $alert->id }})">{{ __('Resolver') }}</flux:button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         @endif
     </div>
 
@@ -149,7 +151,7 @@ new #[Title('Vencimientos — Kardex')] class extends Component {
 
             <div class="flex justify-end gap-3">
                 <flux:button wire:click="$set('showResolveModal', false)">{{ __('Cancelar') }}</flux:button>
-                <flux:button variant="primary" wire:click="resolve">{{ __('Guardar') }}</flux:button>
+                <flux:button variant="primary" wire:click="resolve" wire:loading.attr="disabled" wire:target="resolve">{{ __('Guardar') }}</flux:button>
             </div>
         </div>
     </flux:modal>

@@ -108,6 +108,18 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
+/* Área táctil mínima en dispositivos táctiles. Los botones `size="sm"` de las
+   columnas de acción de las tablas quedan por debajo del mínimo recomendado y
+   son justamente los que se usan en campo, desde el teléfono
+   (docs/17-Auditoria-Frontend.md, hallazgo B-3). Se acota a `pointer: coarse`
+   para no engordar los botones en escritorio. */
+@media (pointer: coarse) {
+    table [data-flux-button] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
 /* ── Utilidades "Stark Dim" — botones/tarjetas con sombra dura ──
    Se aplican vía class="" directo en las vistas (welcome, layouts,
    auth), nunca sobreescribiendo los stubs internos de Flux. */

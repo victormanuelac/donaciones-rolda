@@ -4,6 +4,12 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
+        {{-- Enlace para saltar la navegación: sin él hay que tabular todo el
+             sidebar en cada página antes de llegar al contenido (hallazgo B-2). --}}
+        <a href="#contenido"
+           class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded focus:bg-primary focus:px-4 focus:py-2 focus:font-display focus:font-bold focus:text-white">
+            {{ __('Saltar al contenido') }}
+        </a>
         <flux:header container class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden mr-2" icon="bars-2" inset="left" />
 
@@ -71,7 +77,9 @@
             </flux:sidebar.nav>
         </flux:sidebar>
 
-        {{ $slot }}
+        <main id="contenido" tabindex="-1">
+            {{ $slot }}
+        </main>
 
         @persist('toast')
             <flux:toast.group>

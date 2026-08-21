@@ -81,6 +81,10 @@ El mismo seed corre `database/seeders/KardexDemoSeeder.php`: crea 2 bodegas de e
 
 El mismo seed corre `database/seeders/DeliveriesDemoSeeder.php`: crea 3 hogares beneficiarios de ejemplo (como si vinieran del censo del Módulo 7) y varias entregas históricas del operador de prueba hacia esos hogares, usando el mismo login que el Kardex — sin credenciales nuevas. Incluye un ítem (`Frijol`) con pocas existencias y consumo reciente sostenido, para ver la proyección de agotamiento en `/kardex` y en `/entregas/registrar`.
 
+### Datos de prueba del perfil de vulnerabilidad — Fase 2 (Módulo 7)
+
+El mismo seed corre `database/seeders/BeneficiariesDemoSeeder.php`: agrega 2 ítems médicos de ejemplo (Hierro y Ácido Fólico prenatal, Metformina 500mg), siembra 3 protocolos de recomendación de ejemplo y completa el perfil de vulnerabilidad de dos de los hogares ya sembrados por `DeliveriesDemoSeeder` (Yolanda Pérez, embarazada de tercer trimestre; Carlos Gómez, con diabetes), con sus recomendaciones ya generadas. Entra a `/beneficiarios` con la cuenta de **admin** (ya tiene acceso — el rol `coordinator`/`doctor` también puede, pero no hay una cuenta de ejemplo con esos roles todavía; créala tú mismo aprobando un registro nuevo si la necesitas).
+
 ### Alias `sail` (opcional, pero recomendado)
 
 Para no escribir `./vendor/bin/sail` cada vez:

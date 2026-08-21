@@ -84,6 +84,15 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
+     * Perfil de vulnerabilidad (Módulo 7, Fase 2): trabajo clínico/social más
+     * sensible que el triaje de campo, restringido frente a canSurveyCensus().
+     */
+    public function canManageBeneficiaries(): bool
+    {
+        return in_array($this->role, [UserRole::Coordinator, UserRole::Admin, UserRole::Doctor], true);
+    }
+
+    /**
      * @return HasMany<WarehouseAssignment, $this>
      */
     public function warehouseAssignments(): HasMany

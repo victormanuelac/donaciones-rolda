@@ -22,6 +22,12 @@
                         </flux:sidebar.item>
                     @endif
 
+                    @if (auth()->user()?->canManageBeneficiaries())
+                        <flux:sidebar.item icon="heart" :href="route('beneficiaries.index')" :current="request()->routeIs('beneficiaries.*')" wire:navigate>
+                            {{ __('Beneficiarios') }}
+                        </flux:sidebar.item>
+                    @endif
+
                     @if (auth()->user()?->canManageStock())
                         <flux:sidebar.item icon="archive-box" :href="route('kardex.index')" :current="request()->routeIs('kardex.*')" wire:navigate>
                             {{ __('Kardex') }}

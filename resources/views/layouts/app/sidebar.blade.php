@@ -120,9 +120,7 @@
             </flux:dropdown>
         </flux:header>
 
-        <main id="contenido" tabindex="-1">
-            {{ $slot }}
-        </main>
+        {{ $slot }}
 
         @persist('toast')
             <flux:toast.group>

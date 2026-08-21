@@ -62,9 +62,10 @@ El desglose de esfuerzo por módulo y equipo más granular sigue siendo el de `0
 
 - [`08-Matriz-Compliance-Privacy-LSPP.md`](08-Matriz-Compliance-Privacy-LSPP.md) — cumplimiento Ley 1581/2012 (Colombia), retención de datos, derechos del titular, protocolo de brechas
 
-## 5B. Pruebas QA
+## 5B. Pruebas QA y auditoría
 
 - [`16-Plan-de-Pruebas-QA.md`](16-Plan-de-Pruebas-QA.md) — guía paso a paso para QA: casos de prueba manuales con resultado esperado y checklist de cumple/no cumple, por módulo ya construido (hoy: Módulo 2 y Formulario de Encuestas). Se amplía a medida que se agregan módulos.
+- [`17-Auditoria-Frontend.md`](17-Auditoria-Frontend.md) — **auditoría técnica del frontend** (20-ago-2026, rama `test`): funcionalidad, integridad de datos, consistencia visual/accesibilidad, rendimiento y offline-first. Incluye 6 bloqueadores críticos con plan de acción por bloques. *Es un diagnóstico, no un registro de cambios aplicados: los hallazgos siguen abiertos salvo que se indique lo contrario.*
 
 ## 6. Roadmap de desarrollo (vive en Notion, no aquí)
 

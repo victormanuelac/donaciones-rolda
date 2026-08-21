@@ -11,8 +11,18 @@ import { watchConnectivity } from './offline/sync.js';
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('censusWizard', censusWizard);
     window.Alpine.data('censusFallbackMap', () => ({
+        map: null,
+
         init() {
-            initFallbackMap(this.$refs.mapContainer, (lat, lng) => this.setManualPin(lat, lng));
+            this.map = initFallbackMap(this.$refs.mapContainer, (lat, lng) => this.setManualPin(lat, lng));
+        },
+
+        // El censo se alcanza con `wire:navigate`: sin destruir el mapa, cada
+        // ida y vuelta deja una instancia de Leaflet completa en memoria
+        // (docs/17-Auditoria-Frontend.md, hallazgo M-8).
+        destroy() {
+            this.map?.remove();
+            this.map = null;
         },
     }));
     window.Alpine.data('stockEntryForm', stockEntryForm);

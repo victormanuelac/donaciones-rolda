@@ -70,6 +70,7 @@ class Warehouse extends Model
     {
         return (int) $this->stockEntries()
             ->whereIn('status', ['available', 'expired'])
+            ->withAvailableQuantity()
             ->get()
             ->sum(fn (StockEntry $entry) => $entry->availableQuantity());
     }

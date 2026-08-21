@@ -12,6 +12,7 @@ export default function publicResultsMap() {
     return {
         map: null,
         markers: [],
+        onResultsUpdated: null,
 
         init() {
             this.map = L.map(this.$refs.mapContainer).setView(ROLDANILLO_CENTER, 13);
@@ -21,7 +22,27 @@ export default function publicResultsMap() {
                 maxZoom: 19,
             }).addTo(this.map);
 
-            window.addEventListener('public-search:results-updated', (event) => this.redraw(event.detail));
+            this.onResultsUpdated = (event) => this.redraw(event.detail);
+            window.addEventListener('public-search:results-updated', this.onResultsUpdated);
+        },
+
+        /**
+         * Alpine llama a `destroy()` al desmontar el componente. Sin esto, el
+         * listener global y la instancia de Leaflet (con sus capas de tiles)
+         * quedan en memoria en cada navegación — ver
+         * docs/17-Auditoria-Frontend.md, hallazgo M-8.
+         */
+        destroy() {
+            if (this.onResultsUpdated) {
+                window.removeEventListener('public-search:results-updated', this.onResultsUpdated);
+                this.onResultsUpdated = null;
+            }
+
+            this.markers.forEach((marker) => marker.remove());
+            this.markers = [];
+
+            this.map?.remove();
+            this.map = null;
         },
 
         redraw(results) {

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\StockEntryStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -25,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $client_uuid
  * @property int|null $transferred_from_stock_entry_id
  * @property int|null $adjustment_stock_count_id
+ * @property int|null $released_total Solo presente si se consultó con el scope `withAvailableQuantity()`.
  */
 #[Fillable([
     'master_item_id', 'warehouse_id', 'registered_by_user_id', 'confirmed_by_user_id',
@@ -99,10 +102,59 @@ class StockEntry extends Model
     }
 
     /**
+     * Precarga lo despachado de cada lote en la misma consulta que los trae.
+     * Sin esto, `availableQuantity()` dispara una consulta por fila — el N+1
+     * que documenta docs/17-Auditoria-Frontend.md (hallazgo A-2).
+     *
+     * Es deliberadamente opt-in: las acciones de escritura (salida, traslado,
+     * conteo) **no** deben usarlo, porque necesitan leer el saldo fresco dentro
+     * de su transacción, no una foto tomada antes.
+     *
+     * @param  Builder<StockEntry>  $query
+     */
+    #[Scope]
+    protected function withAvailableQuantity(Builder $query): void
+    {
+        $query->withSum('exits as released_total', 'quantity_released');
+    }
+
+    /**
      * Cantidad restante en este lote: lo ingresado menos lo ya despachado.
+     *
+     * Usa el total precargado por `withAvailableQuantity()` si está disponible;
+     * si no, consulta — así el resultado es siempre correcto y las rutas de
+     * escritura siguen viendo el saldo real sin cambiar nada.
      */
     public function availableQuantity(): int
     {
-        return $this->quantity - (int) $this->exits()->sum('quantity_released');
+        // Se comprueba que el atributo **exista**, no que tenga valor: `withSum`
+        // devuelve NULL para los lotes sin salidas, así que un `??` volvería a
+        // consultar precisamente en el caso más común.
+        $released = array_key_exists('released_total', $this->attributes)
+            ? (int) $this->attributes['released_total']
+            : (int) $this->exits()->sum('quantity_released');
+
+        return $this->quantity - $released;
+    }
+
+    /**
+     * ¿Este lote vence dentro de los próximos :days días?
+     *
+     * Vive aquí y no en la vista porque `diffInDays()` devuelve un valor **con
+     * signo** en Carbon 3: una fecha futura da negativo, así que la comparación
+     * ingenua `diffInDays(now()) <= 30` daba verdadero para *cualquier*
+     * vencimiento futuro y pintaba todo el Kardex en rojo
+     * (docs/17-Auditoria-Frontend.md, hallazgo A-3).
+     */
+    public function isExpiringSoon(int $days = 30): bool
+    {
+        if ($this->expiry_date === null) {
+            return false;
+        }
+
+        // Misma forma con signo explícito que ya usa UpdateStockEntryStatuses.
+        $daysRemaining = Carbon::now()->startOfDay()->diffInDays($this->expiry_date->startOfDay(), false);
+
+        return $daysRemaining <= $days;
     }
 }

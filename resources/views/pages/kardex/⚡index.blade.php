@@ -3,12 +3,25 @@
 use App\Models\MasterItem;
 use App\Models\StockEntry;
 use App\Models\Warehouse;
-use App\Services\Kardex\StockProjectionService;
+use App\Services\Kardex\KardexAlertsService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
+/**
+ * Los tres avisos de la parte superior salen de agregados en SQL
+ * (`KardexAlertsService`), no de recorrer ítems o lotes en PHP: esta pantalla
+ * disparaba 73 consultas con 16 lotes sembrados y las repetía enteras en cada
+ * cambio de filtro (docs/17-Auditoria-Frontend.md, hallazgo A-2).
+ */
 new #[Title('Kardex — Inventario')] class extends Component {
+    use WithPagination;
+
+    private const PROJECTION_LOOKBACK_DAYS = 30;
+
+    private const PROJECTION_ALERT_DAYS = 21;
+
     public ?int $warehouseFilter = null;
 
     public function mount(): void
@@ -20,10 +33,35 @@ new #[Title('Kardex — Inventario')] class extends Component {
         }
     }
 
+    public function updatedWarehouseFilter(): void
+    {
+        $this->resetPage();
+    }
+
     #[Computed]
     public function warehouses()
     {
         return auth()->user()->assignableWarehouses();
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    #[Computed]
+    public function warehouseIds(): array
+    {
+        return $this->warehouseFilter
+            ? [$this->warehouseFilter]
+            : $this->warehouses->pluck('id')->all();
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    #[Computed]
+    public function availableByItem(): array
+    {
+        return app(KardexAlertsService::class)->availableByItem($this->warehouseIds);
     }
 
     #[Computed]
@@ -31,44 +69,61 @@ new #[Title('Kardex — Inventario')] class extends Component {
     {
         return StockEntry::query()
             ->with(['masterItem.category', 'warehouse'])
-            ->whereIn('warehouse_id', $this->warehouses->pluck('id'))
-            ->when($this->warehouseFilter, fn ($query) => $query->where('warehouse_id', $this->warehouseFilter))
+            ->withAvailableQuantity()
+            ->whereIn('warehouse_id', $this->warehouseIds)
+            // Un lote agotado sigue siendo relevante si ya no está "available"
+            // (vencido, retirado): se muestra para dejar rastro del movimiento.
+            ->where(fn ($query) => $query
+                ->where('status', '!=', 'available')
+                ->orWhereRaw('stock_entries.quantity > COALESCE((SELECT SUM(quantity_released) FROM stock_exits WHERE stock_exits.stock_entry_id = stock_entries.id), 0)')
+            )
             ->latest()
-            ->get()
-            ->filter(fn (StockEntry $entry) => $entry->availableQuantity() > 0 || $entry->status->value !== 'available');
+            ->paginate(25);
     }
 
     #[Computed]
     public function lowStockItems()
     {
-        $warehouseIds = $this->warehouseFilter ? [$this->warehouseFilter] : $this->warehouses->pluck('id')->all();
+        $available = $this->availableByItem;
 
         return MasterItem::query()
             ->whereNotNull('reorder_point')
-            ->whereHas('stockEntries', fn ($query) => $query->whereIn('warehouse_id', $warehouseIds))
+            ->whereIn('id', array_keys($available))
             ->get()
-            ->filter(fn (MasterItem $item) => $item->isBelowReorderPoint($warehouseIds));
+            ->filter(fn (MasterItem $item) => ($available[$item->id] ?? 0) <= $item->reorder_point)
+            ->values();
     }
 
     /**
      * Ítems con existencias que, al ritmo de consumo de los últimos 30 días,
      * se agotarían en 21 días o menos. Requiere historial de salidas reciente
-     * para poder proyectar — sin eso no aparece aquí (ver StockProjectionService).
+     * para poder proyectar — sin eso no aparece aquí.
+     *
+     * @return \Illuminate\Support\Collection<int, array{item: MasterItem, days_remaining: float}>
      */
     #[Computed]
     public function projectedStockouts()
     {
-        $warehouseIds = $this->warehouseFilter ? [$this->warehouseFilter] : $this->warehouses->pluck('id')->all();
-        $projection = app(StockProjectionService::class);
+        $available = $this->availableByItem;
+        $consumed = app(KardexAlertsService::class)
+            ->consumedByItem($this->warehouseIds, self::PROJECTION_LOOKBACK_DAYS);
+
+        $itemIds = array_keys(array_intersect_key($available, $consumed));
 
         return MasterItem::query()
-            ->whereHas('stockEntries', fn ($query) => $query->whereIn('warehouse_id', $warehouseIds)->where('status', 'available'))
+            ->whereIn('id', $itemIds)
             ->get()
-            ->map(fn (MasterItem $item) => [
-                'item' => $item,
-                'days_remaining' => $projection->daysRemaining($item, $warehouseIds),
-            ])
-            ->filter(fn (array $row) => $row['days_remaining'] !== null && $row['days_remaining'] <= 21)
+            ->map(function (MasterItem $item) use ($available, $consumed) {
+                $dailyRate = $consumed[$item->id] / self::PROJECTION_LOOKBACK_DAYS;
+
+                return [
+                    'item' => $item,
+                    'days_remaining' => $dailyRate > 0
+                        ? round($available[$item->id] / $dailyRate, 1)
+                        : null,
+                ];
+            })
+            ->filter(fn (array $row) => $row['days_remaining'] !== null && $row['days_remaining'] <= self::PROJECTION_ALERT_DAYS)
             ->sortBy('days_remaining')
             ->values();
     }
@@ -76,9 +131,13 @@ new #[Title('Kardex — Inventario')] class extends Component {
     #[Computed]
     public function overCapacityWarehouses()
     {
+        $occupied = app(KardexAlertsService::class)->occupiedByWarehouse($this->warehouseIds);
+
         return $this->warehouses
-            ->when($this->warehouseFilter, fn ($collection) => $collection->where('id', $this->warehouseFilter))
-            ->filter(fn (Warehouse $warehouse) => $warehouse->isOverCapacity());
+            ->whereIn('id', $this->warehouseIds)
+            ->filter(fn (Warehouse $warehouse) => $warehouse->max_capacity_units !== null
+                && ($occupied[$warehouse->id] ?? 0) > $warehouse->max_capacity_units)
+            ->values();
     }
 }; ?>
 
@@ -101,7 +160,7 @@ new #[Title('Kardex — Inventario')] class extends Component {
         <flux:callout variant="warning" icon="exclamation-triangle" class="mb-4">
             <flux:callout.heading>{{ __('Ítems bajo el punto de reorden') }}</flux:callout.heading>
             <flux:callout.text>
-                {{ $this->lowStockItems->map(fn ($item) => "{$item->name} ({$item->totalAvailableQuantity($this->warehouseFilter ? [$this->warehouseFilter] : $this->warehouses->pluck('id')->all())} {$item->unit_of_measure})")->implode(' · ') }}
+                {{ $this->lowStockItems->map(fn (App\Models\MasterItem $item) => "{$item->name} ({$this->availableByItem[$item->id]} {$item->unit_of_measure})")->implode(' · ') }}
             </flux:callout.text>
         </flux:callout>
     @endif
@@ -122,6 +181,7 @@ new #[Title('Kardex — Inventario')] class extends Component {
             <flux:callout.heading>{{ __('Bodegas por encima de su capacidad máxima') }}</flux:callout.heading>
             <flux:callout.text>
                 {{ $this->overCapacityWarehouses->map(fn (Warehouse $warehouse) => "{$warehouse->name}: {$warehouse->occupiedUnits()} / {$warehouse->max_capacity_units}")->implode(' · ') }}
+                {{-- occupiedUnits() aquí cuesta 1 consulta por bodega sobrepasada, que son pocas por definición. --}}
             </flux:callout.text>
         </flux:callout>
     @endif
@@ -168,7 +228,7 @@ new #[Title('Kardex — Inventario')] class extends Component {
                             <td class="px-4 py-3 text-muted">{{ $entry->lot_number ?? '—' }}</td>
                             <td class="px-4 py-3 text-muted">
                                 @if ($entry->expiry_date)
-                                    <span @class(['text-danger font-bold' => $entry->expiry_date->isPast() || $entry->expiry_date->diffInDays(now()) <= 30])>
+                                    <span @class(['text-danger font-bold' => $entry->isExpiringSoon()])>
                                         {{ $entry->expiry_date->format('d/m/Y') }}
                                     </span>
                                 @else
@@ -186,6 +246,10 @@ new #[Title('Kardex — Inventario')] class extends Component {
                     @endforeach
                 </tbody>
             </table>
+
+            <div class="p-4 border-t border-line">
+                {{ $this->entries->links() }}
+            </div>
         @endif
     </div>
 </section>

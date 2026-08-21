@@ -44,6 +44,9 @@ class SearchController extends Controller
 
         $entries = StockEntry::query()
             ->with(['masterItem.category', 'warehouse.zone'])
+            // Sin esto, cada lote del resultado dispara su propia consulta al
+            // calcular lo disponible — y esta es la ruta anónima de más tráfico.
+            ->withAvailableQuantity()
             ->where('status', 'available')
             ->whereHas('masterItem', function ($query) use ($keyword, $categoryId) {
                 $query->where('status', MasterItemStatus::Approved);

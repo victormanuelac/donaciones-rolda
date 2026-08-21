@@ -29,7 +29,7 @@ new #[Title('Vencimientos — Kardex')] class extends Component {
     public function alerts()
     {
         return ExpiryAlert::query()
-            ->with(['stockEntry.masterItem', 'stockEntry.warehouse'])
+            ->with(['stockEntry' => fn ($query) => $query->withAvailableQuantity(), 'stockEntry.masterItem', 'stockEntry.warehouse'])
             ->whereNull('resolved_at')
             ->whereHas('stockEntry', fn ($query) => $query->whereIn('warehouse_id', $this->warehouses->pluck('id')))
             ->get()

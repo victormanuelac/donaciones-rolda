@@ -19,7 +19,7 @@
 > | Bloque | Estado | Detalle |
 > |---|---|---|
 > | **Bloque 0** | ✅ **Aplicado** (21-ago-2026) | C-1, C-3 y A-5 cerrados. **C-2 solo en su parte de código**: falta servir el ambiente EC2 por HTTPS, que es tarea de infraestructura. |
-> | Bloque 1 | ⬜ Abierto | A-2, A-3, M-8 |
+> | **Bloque 1** | ✅ **Aplicado** (21-ago-2026) | A-2, A-3 y M-8 cerrados. `/kardex` pasó de 1.346 consultas a 13 con 616 lotes. |
 > | Bloque 2 | ⬜ Abierto | C-4, A-1, M-2, M-3, M-4 (y la parte de infraestructura de C-2, de la que dependen) |
 > | Bloque 3 | ⬜ Abierto | A-4, M-1, M-5, M-6, M-7, B-1, B-2, B-3 |
 >
@@ -42,7 +42,7 @@
 2. 🟡 **El ambiente EC2 corre sobre HTTP plano** → sin *secure context*: el Service Worker no se registra, `crypto.randomUUID()` no existe y **los formularios de campo se cuelgan al enviar** sin mensaje de error. *(El cuelgue está corregido; falta el HTTPS.)*
 3. ✅ **Falta la regla `[x-cloak]{display:none}`** — 28 elementos que deberían estar ocultos eran visibles en el primer pintado de 8 vistas. *(Corregido, Bloque 0.)*
 4. **PII de censo sin cifrar en IndexedDB** — documentos, teléfonos y coordenadas GPS en claro en el dispositivo de campo, contra la propia matriz LSPP del proyecto (`08-Matriz-Compliance-Privacy-LSPP.md`).
-5. **N+1 anidado en `/kardex`** — 73 consultas SQL con solo 16 lotes en la base sembrada.
+5. ✅ **N+1 anidado en `/kardex`** — 73 consultas SQL con solo 16 lotes en la base sembrada. *(Corregido, Bloque 1.)*
 6. ✅ **El dashboard post-login es un placeholder** que mostraba `0` en todos sus indicadores y el texto "todavía no hay módulos operativos", contradiciendo la base de datos. *(Corregido, Bloque 0.)*
 
 ---
@@ -54,14 +54,14 @@
 | **Portal público** (`/`) | ⚠️ **Fallo silencioso de red**: si `fetch` lanza, no hay `catch` → muestra "No encontramos insumos" cuando el problema real es la conexión | ✅ XSS corregido — el popup se arma con nodos del DOM | ⚠️ Sin `AbortController`: respuestas fuera de orden pisan resultados nuevos | ✅ Buena (`grid-cols-1 lg:grid-cols-3`); ⚠️ `autofocus` abre el teclado al entrar | ➖ N/A por diseño (requiere red) |
 | **Login / Registro / Auth** | ✅ OK | ✅ OK | ✅ Ligero | ✅ OK | ➖ N/A |
 | **Dashboard** | ✅ Corregido — conteos reales por rol | ✅ Corregido — agregados en SQL | ✅ Trivial | ✅ OK | ➖ |
-| **Kardex — índice** | ✅ OK | 🔴 **Todo vencimiento futuro se pinta rojo/negrita** (bug de signo de Carbon 3) | 🔴 **73 consultas / 16 lotes**; sin paginación; se recalcula entero en cada cambio de filtro | 🔴 Tabla de 7 columnas dentro de `overflow-hidden` → **se recorta, no scrollea** | ➖ |
+| **Kardex — índice** | ✅ OK | ✅ Corregido — `isExpiringSoon()` con signo explícito | ✅ Corregido — 13 consultas constantes, paginado de a 25 | 🔴 Tabla de 7 columnas dentro de `overflow-hidden` → **se recorta, no scrollea** | ➖ |
 | **Kardex — entrada / salida / traslado** | ✅ Cuelgue corregido (respaldo de UUID); ⚠️ "Solicitar ítem nuevo" (Livewire) muere en silencio sin red, en una pantalla rotulada "funciona sin conexión" | ⚠️ `quantity` viaja como cadena; la guarda `!quantity` no bloquea `"0"` | ✅ Ligero | ✅ `max-w-2xl` correcto | ✅ **Lo mejor de la app**: cola Dexie + reintento; 🔴 payload sin cifrar |
-| **Kardex — ficha / conteo / vencimientos** | ✅ OK | ✅ OK | ⚠️ `availableQuantity()` por fila | 🔴 Tabla recortada (`overflow-hidden`) | ➖ |
-| **Censo (wizard 6 pasos)** | ✅ Mismo cuelgue corregido; ✅ fallback GPS → pin manual bien resuelto | ⚠️ Payload plano, sin validación de cliente entre pasos | ⚠️ **Fuga de memoria**: el mapa Leaflet nunca se destruye con `wire:navigate` | ✅ Diseñado para móvil | ✅ Cola + `syncNow()`; 🔴 **documentos y teléfonos en claro en IndexedDB** |
+| **Kardex — ficha / conteo / vencimientos** | ✅ OK | ✅ OK | ✅ Corregido — saldo precargado | 🔴 Tabla recortada (`overflow-hidden`) | ➖ |
+| **Censo (wizard 6 pasos)** | ✅ Mismo cuelgue corregido; ✅ fallback GPS → pin manual bien resuelto | ⚠️ Payload plano, sin validación de cliente entre pasos | ✅ Fuga de memoria corregida (`destroy()`) | ✅ Diseñado para móvil | ✅ Cola + `syncNow()`; 🔴 **documentos y teléfonos en claro en IndexedDB** |
 | **Beneficiarios — índice** | ✅ OK, paginado (20) | ✅ Correcto | ⚠️ Sin `wire:loading` en 3 filtros `.live` → congelación muda | 🔴 Tabla de 6 columnas recortada | ➖ N/A (PII, decisión correcta) |
 | **Beneficiarios — detalle / perfil** | ✅ OK | ⚠️ `chronicConditions`/`currentSymptoms` **sin regla de validación** → texto ilimitado hacia una columna TEXT | ⚠️ `save()` = 2 `update()` + `refresh()` + `fresh()` **sin transacción**: si falla el motor de recomendaciones, el score queda persistido y las recomendaciones no | ✅ Formulario de una columna, correcto | ➖ N/A (correcto) |
-| **Entregas — registro** | ✅ OK, con `wire:loading` (1 de las solo 4 vistas que lo tienen) | ✅ Correcto | 🔴 `availableEntries` carga **todos** los lotes y filtra en PHP, con 1 consulta por lote | ✅ OK | ➖ N/A (correcto y documentado) |
-| **Entregas — listado** | ✅ OK | ✅ OK | ⚠️ N+1 | 🔴 Tabla recortada | ➖ |
+| **Entregas — registro** | ✅ OK, con `wire:loading` (1 de las solo 4 vistas que lo tienen) | ✅ Correcto | ✅ Corregido — saldo precargado en una consulta | ✅ OK | ➖ N/A (correcto y documentado) |
+| **Entregas — listado** | ✅ OK | ✅ OK | ✅ Corregido | 🔴 Tabla recortada | ➖ |
 | **Admin — usuarios / ítems / bodegas** | ⚠️ Sin `wire:loading` ni `disabled`: doble clic en "Enviar solicitud" crea **dos solicitudes duplicadas** | ✅ Correcto | ✅ Volumen bajo | 🔴 Tabla recortada; ⚠️ botones `size="sm"` bajo el mínimo táctil de 48px | ➖ |
 | **Ajustes / 2FA** | ✅ OK (starter kit, buena accesibilidad: `aria-expanded`, `aria-controls`, `role="list"`) | ✅ OK | ✅ OK | ✅ OK | ➖ |
 
@@ -119,7 +119,7 @@ En el servidor sí se cifran; en el dispositivo de campo (compartido, susceptibl
 
 Además no hay guarda de concurrencia: `watchConnectivity()` puede disparar un `flushQueue()` mientras otro sigue en vuelo.
 
-### 🔴 [Alta] A-2 · N+1 anidado en `/kardex` — **[verificado, medido]**
+### ✅ [Alta] A-2 · N+1 anidado en `/kardex` — **[verificado, medido — CORREGIDO]**
 
 `StockEntry::availableQuantity()` (`app/Models/StockEntry.php:106`) ejecuta `$this->exits()->sum(...)`: **una consulta por lote, siempre, sin posibilidad de eager loading tal como está escrito**. `MasterItem::totalAvailableQuantity()` lo llama en bucle → N×M. La vista lo invoca **dos veces** (en la propiedad computada y otra vez en el callout de la línea 104).
 
@@ -129,9 +129,22 @@ Medición real sobre la base de datos sembrada:
 lotes: 16 · ítems: 11  →  73 consultas para pintar /kardex una sola vez
 ```
 
-Sin paginación y con `wire:model.live` en el filtro de bodega, todo esto se repite íntegro en cada cambio de filtro. Con un inventario de emergencia realista (500 lotes / 120 ítems) son miles de consultas por render.
+Sin paginación y con `wire:model.live` en el filtro de bodega, todo esto se repetía íntegro en cada cambio de filtro.
 
-### 🔴 [Alta] A-3 · Toda fecha de vencimiento futura se pinta como urgente — **[verificado]**
+> **✅ Corregido (21-ago-2026).** Tres cambios: el scope `StockEntry::withAvailableQuantity()` precarga lo despachado en la misma consulta (opt-in: las acciones de escritura siguen leyendo el saldo fresco dentro de su transacción); `KardexAlertsService` resuelve los tres avisos con un agregado SQL cada uno en vez de recorrer ítems; y la tabla se pagina de a 25.
+>
+> Medición al mismo volumen, con 616 lotes y 131 ítems:
+>
+> | | Consultas | Tiempo |
+> |---|---:|---:|
+> | Antes | 1.346 | 1.732 ms |
+> | Después | **13** | **134 ms** |
+>
+> El conteo ya no depende del volumen: son 13 consultas tanto con 16 lotes como con 616. `tests/Feature/Kardex/KardexQueryPerformanceTest.php` lo fija como prueba de regresión y verifica además que los agregados dan exactamente lo mismo que el cálculo lote por lote que reemplazan.
+>
+> **Nota sobre la recomendación original de cachear en Redis con TTL 5m: se descartó a propósito.** Con los agregados ya resueltos, el ahorro sería marginal y el costo alto — los avisos de stock quedarían obsoletos justo después de registrar una entrada o una salida, que es cuando se consultan.
+
+### ✅ [Alta] A-3 · Toda fecha de vencimiento futura se pinta como urgente — **[verificado — CORREGIDO]**
 
 `resources/views/pages/kardex/⚡index.blade.php:171`:
 
@@ -147,7 +160,9 @@ expiry en 200 días → diffInDays(now()) = -199.99  →  se pinta rojo: SÍ
 
 Todos los lotes con vencimiento futuro salen en rojo y negrita. La señal visual de urgencia queda convertida en 100% ruido.
 
-El proyecto ya usa la forma correcta en `app/Console/Commands/Kardex/UpdateStockEntryStatuses.php:57` (`diffInDays($fecha, false)`), así que es un desliz aislado en una vista, no un malentendido de fondo.
+El proyecto ya usa la forma correcta en `app/Console/Commands/Kardex/UpdateStockEntryStatuses.php:57` (`diffInDays($fecha, false)`), así que era un desliz aislado en una vista, no un malentendido de fondo.
+
+> **✅ Corregido (21-ago-2026).** La lógica se movió a `StockEntry::isExpiringSoon()`, con el signo explícito y el umbral configurable. `tests/Feature/Kardex/StockEntryExpiryTest.php` fija los bordes (30 y 31 días, ya vencido, sin fecha) para que no vuelva.
 
 ### 🔴 [Alta] A-4 · Ninguna tabla es usable en móvil — **[verificado]**
 
@@ -189,9 +204,11 @@ No hay listener del evento `offline` en ninguna parte, ni banner de estado. `pen
 
 `runSearch()` no usa `AbortController` ni una guarda de secuencia: con el debounce de 350ms y una red lenta, la respuesta de una búsqueda anterior puede pisar la de una posterior.
 
-### 🟡 [Media] M-8 · Fugas de memoria en los mapas Leaflet
+### ✅ [Media] M-8 · Fugas de memoria en los mapas Leaflet — **CORREGIDO**
 
-Ni `resources/js/public/results-map.js` ni `resources/js/census/map.js` destruyen la instancia del mapa ni retiran sus listeners (`window.addEventListener` dentro de `init()`, `map.on('click')`). El censo es alcanzable mediante `wire:navigate`, así que cada ida y vuelta a esa pantalla deja en memoria un mapa completo con sus capas de tiles.
+Ni `resources/js/public/results-map.js` ni `resources/js/census/map.js` destruían la instancia del mapa ni retiraban sus listeners (`window.addEventListener` dentro de `init()`, `map.on('click')`). El censo es alcanzable mediante `wire:navigate`, así que cada ida y vuelta a esa pantalla dejaba en memoria un mapa completo con sus capas de tiles.
+
+> **✅ Corregido (21-ago-2026).** Ambos componentes Alpine implementan `destroy()`: retiran el listener global y llaman a `map.remove()`.
 
 ### 🟢 [Baja] B-1 · Interfaz mezclada inglés/español
 
@@ -247,7 +264,7 @@ Alguien que busque desde Cali recibe como etiqueta el nombre de un barrio de Rol
 
 4. **A-5 · Cablear el dashboard** a consultas reales (bodegas activas, hogares censados, lotes disponibles, alertas abiertas) o retirarlo del flujo hasta que exista.
 
-### Bloque 1 — Rendimiento y memoria (~2 días) — ⬜ abierto
+### Bloque 1 — ✅ Aplicado el 21-ago-2026
 
 5. **A-2 · Eliminar el N+1.** Usar un agregado en lugar de una consulta por fila:
 
@@ -299,10 +316,10 @@ Ese es el hilo conductor del informe completo, y sugiere la contramedida estruct
 | Prioridad | Bloque | Esfuerzo | Cierra |
 |---|---|---|---|
 | ~~1~~ ✅ | Bloque 0 | ~1 día | C-1, C-3, A-5 cerrados; C-2 solo en código (falta el HTTPS del ambiente) |
-| 2 | Bloque 1 | ~2 días | A-2, A-3, M-8 |
+| ~~2~~ ✅ | Bloque 1 | ~2 días | A-2, A-3, M-8 cerrados |
 | 3 | Bloque 2 | ~3 días | C-2 (completo), C-4, A-1, M-2, M-3, M-4 |
 | 4 | Bloque 3 | ~2 días | A-4, M-1, M-5, M-6, M-7, B-1, B-2, B-3 |
 
 El Bloque 0 era el único urgente y ya está aplicado: cerró el XSS del portal público, que era el único hallazgo con exposición a usuarios anónimos.
 
-La acción pendiente de mayor palanca ahora es **poner HTTPS en el ambiente EC2**: no es código, cierra lo que queda de C-2 y desbloquea el Bloque 2 completo (cifrar la PII de la cola offline necesita WebCrypto, que exige contexto seguro).
+Con el Bloque 1 también aplicado, la acción pendiente de mayor palanca es **poner HTTPS en el ambiente EC2**: no es código, cierra lo que queda de C-2 y desbloquea el Bloque 2 completo (cifrar la PII de la cola offline necesita WebCrypto, que exige contexto seguro).

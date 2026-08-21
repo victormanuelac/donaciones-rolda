@@ -115,6 +115,7 @@ class BeneficiaryRecommendationService
         $entriesByWarehouse = StockEntry::where('master_item_id', $item->id)
             ->where('status', 'available')
             ->with('warehouse')
+            ->withAvailableQuantity()
             ->get()
             ->groupBy('warehouse_id');
 

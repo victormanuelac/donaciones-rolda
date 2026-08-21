@@ -18,4 +18,5 @@ require __DIR__.'/admin.php';
 require __DIR__.'/census.php';
 require __DIR__.'/kardex.php';
 require __DIR__.'/deliveries.php';
+require __DIR__.'/beneficiaries.php';
 require __DIR__.'/public.php';

@@ -1,6 +1,6 @@
 # 🧪 Plan de Pruebas QA — Funcionalidades en construcción
 
-**Alcance de esta versión:** Módulo 1 (Portal Público de Búsqueda, sin autenticación), Módulo 2 (Autenticación y Roles), el Formulario de Encuestas — Censo de Hogares (Fase 1 de triaje + registro de integrantes), Módulo 3 (Kardex/Inventario de centros de acopio, incluido el catálogo administrable de Bodegas / Centros de Acopio, control de vencidos, FEFO, traslados entre bodegas, alertas de vencimiento y de stock mínimo, conteo físico con ajustes, ficha Kardex por ítem y alerta de sobrecupo de bodega), Módulo 4 (Control Maestro de Ítems: solicitud, aprobación, rechazo y consolidación) y Módulo 6 (Entregas y Seguimiento). Se actualiza a medida que se agregan módulos nuevos.
+**Alcance de esta versión:** Módulo 1 (Portal Público de Búsqueda, sin autenticación), Módulo 2 (Autenticación y Roles), el Formulario de Encuestas — Censo de Hogares (Fase 1 de triaje + registro de integrantes), Módulo 3 (Kardex/Inventario de centros de acopio, incluido el catálogo administrable de Bodegas / Centros de Acopio, control de vencidos, FEFO, traslados entre bodegas, alertas de vencimiento y de stock mínimo, conteo físico con ajustes, ficha Kardex por ítem y alerta de sobrecupo de bodega), Módulo 4 (Control Maestro de Ítems: solicitud, aprobación, rechazo y consolidación), Módulo 6 (Entregas y Seguimiento) y Módulo 7 Fase 2 (perfil de vulnerabilidad individual y recomendaciones). Se actualiza a medida que se agregan módulos nuevos.
 
 Este documento es para quien haga de **QA**: cada caso trae los pasos exactos a ejecutar y la respuesta que debes esperar. Marca **Cumple** o **No cumple** en cada caso y anota cualquier diferencia en Observaciones — no interpretes, compara el resultado real contra el esperado tal como está escrito.
 
@@ -864,7 +864,74 @@ Observaciones: ___________________________________________
 
 ---
 
-## 9. Resumen de resultados
+## 9. Módulo 7 (Fase 2) — Perfil de vulnerabilidad y recomendaciones
+
+Requiere la cuenta de Admin (ya tiene acceso a `/beneficiarios`) y los hogares/beneficiarios sembrados por `BeneficiariesDemoSeeder` (Yolanda Pérez embarazada, Carlos Gómez con diabetes, ambos con perfil ya completo de ejemplo).
+
+### Caso 9.1 — Acceso a Beneficiarios según el rol
+
+| Paso | Acción |
+|---|---|
+| 1 | Inicia sesión con la cuenta de operador de prueba e intenta ir a `/beneficiarios`. |
+| 2 | Inicia sesión como Admin y ve a **Beneficiarios** en el menú lateral. |
+
+**Resultado esperado:** el operador recibe un error 403 (y no ve el enlace "Beneficiarios" en su menú). El admin ve el listado de hogares.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 9.2 — Buscar y filtrar hogares
+
+| Paso | Acción |
+|---|---|
+| 1 | En **Beneficiarios**, busca por el nombre de un jefe de hogar (ej. "Gómez"). |
+| 2 | Quita el filtro y filtra por prioridad de la Fase 1. |
+
+**Resultado esperado:** en ambos casos, el listado se reduce a los hogares que coinciden. La columna "Perfiles Fase 2" muestra cuántos integrantes ya tienen perfil completo sobre el total de integrantes del hogar.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 9.3 — Ver el detalle de un hogar y agregar un integrante
+
+| Paso | Acción |
+|---|---|
+| 1 | Entra al hogar de Yolanda Pérez desde el listado. |
+| 2 | Revisa el resumen del censo Fase 1 (puntaje, prioridad, necesidades). |
+| 3 | Haz clic en **Agregar integrante** y registra a alguien nuevo. |
+
+**Resultado esperado:** se ve el resumen del censo y a Yolanda Pérez en la lista de integrantes con su perfil ya completo (badge de prioridad + puntaje). El nuevo integrante aparece en la lista sin perfil ("Sin perfil").
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 9.4 — Completar el perfil de vulnerabilidad calcula el puntaje
+
+| Paso | Acción |
+|---|---|
+| 1 | Desde el hogar de Carlos Gómez, haz clic en **Editar perfil** sobre él (ya tiene datos de ejemplo: diabetes, desempleado). |
+| 2 | Marca la casilla "Sin hogar" y guarda. |
+| 3 | Revisa el resultado del puntaje que aparece debajo del formulario. |
+
+**Resultado esperado:** aparece el desglose por factor (demográfico/salud/nutricional/social) y el puntaje total con su prioridad. El puntaje sube al marcar "Sin hogar" (factor social).
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+### Caso 9.5 — Guardar el perfil genera recomendaciones
+
+| Paso | Acción |
+|---|---|
+| 1 | Completa o edita el perfil de Carlos Gómez (que tiene diabetes) y guarda. |
+
+**Resultado esperado:** aparece una sección "Recomendaciones generadas" mostrando **Metformina 500mg**, con el protocolo de origen ("Manejo de Diabetes - Salud Local"), el nivel de confianza, el aviso de que requiere aprobación médica, y la cantidad disponible con la bodega más cercana.
+
+`Cumple ☐   No cumple ☐`
+Observaciones: ___________________________________________
+
+---
+
+## 10. Resumen de resultados
 
 | # | Caso | Cumple | No cumple |
 |---|---|---|---|
@@ -931,10 +998,15 @@ Observaciones: ___________________________________________
 | 8.3 | Aprobar ítem editando datos | ☐ | ☐ |
 | 8.4 | Rechazar ítem exige motivo | ☐ | ☐ |
 | 8.5 | Consolidar ítem duplicado | ☐ | ☐ |
+| 9.1 | Acceso a Beneficiarios por rol | ☐ | ☐ |
+| 9.2 | Buscar y filtrar hogares | ☐ | ☐ |
+| 9.3 | Detalle de hogar y agregar integrante | ☐ | ☐ |
+| 9.4 | Completar perfil calcula puntaje | ☐ | ☐ |
+| 9.5 | Guardar perfil genera recomendaciones | ☐ | ☐ |
 
-**Total cumple:** ___ / 63
+**Total cumple:** ___ / 68
 
-## 10. Hallazgos (bugs encontrados)
+## 11. Hallazgos (bugs encontrados)
 
 Para cada caso marcado "No cumple", documenta aquí con el mismo número de caso:
 

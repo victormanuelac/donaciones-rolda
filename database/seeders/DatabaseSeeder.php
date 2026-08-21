@@ -28,5 +28,6 @@ class DatabaseSeeder extends Seeder
         $this->call(GeographicZoneSeeder::class);
         $this->call(KardexDemoSeeder::class);
         $this->call(DeliveriesDemoSeeder::class);
+        $this->call(BeneficiariesDemoSeeder::class);
     }
 }
